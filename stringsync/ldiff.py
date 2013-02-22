@@ -1,4 +1,5 @@
 from collections import namedtuple
+import logging
 from multiprocessing import Queue, Process
 
 from ldif import LDIFParser, LDIFWriter
@@ -23,8 +24,7 @@ DnEntry = namedtuple('DnEntry', 'dn entry')
 
 def _check_error(dn_entry):
     if dn_entry == ERR:
-        # TODO: logging, good message
-        raise Exception("Error in from parsing")
+        raise Exception("Error received from old ldif")
 
 
 def _is_done(dn_entry):
@@ -109,7 +109,8 @@ class DiffWriter(object):
         self.writer.unparse(dn_entry.dn, addition)
 
     def handle_change(self, old_dn_entry, new_dn_entry):
-        # TODO: asserts here for dn
+        if old_dn_entry.dn != new_dn_entry.dn:
+            raise Exception("In a change operation, old and new dns must be the same.")
         changes = modlist.modifyModlist(old_dn_entry.entry, new_dn_entry.entry)
         self.writer.unparse(old_dn_entry.dn, changes)
 

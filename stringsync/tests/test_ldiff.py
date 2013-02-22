@@ -1,9 +1,10 @@
 import os
 from StringIO import StringIO
 
-from nose.tools import eq_
+from nose.tools import eq_, raises
 
 from stringsync import ldiff
+
 
 def _t_fname(fname):
     dirname = os.path.dirname(os.path.abspath(__file__))
@@ -37,7 +38,6 @@ TEST_DATA = [
 
     # test with some base64
     ('entry1.txt', 'entry6.txt', 'results7.txt'),
-
 ]
 
 
@@ -53,3 +53,12 @@ def _check_expected(old_ldif_fname, new_ldif_fname, ldif_diff_fname):
 def test_ldiff_cases():
     for (old_ldif_fname, new_ldif_fname, ldif_diff_fname) in TEST_DATA:
         yield _check_expected, old_ldif_fname, new_ldif_fname, ldif_diff_fname
+
+
+@raises(Exception)
+def test_handle_change_protects_dns():
+    stringio = StringIO()
+    diff_writer = ldiff.DiffWriter(stringio)
+    diff_writer.handle_change(ldiff.DnEntry('hi', {}),
+                              ldiff.DnEntry('bye', {}))
+
