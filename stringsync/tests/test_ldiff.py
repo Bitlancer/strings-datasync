@@ -66,7 +66,7 @@ def test_handle_change_protects_dns():
     stringio = StringIO()
     diff_writer = ldiff.DiffWriter(stringio)
     diff_writer.handle_change(ldiff.DnEntry('hi', {}),
-                             ldiff.DnEntry('bye', {}))
+                              ldiff.DnEntry('bye', {}))
 
 
 @raises(ldiff.UnsortedException)

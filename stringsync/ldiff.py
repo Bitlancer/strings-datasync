@@ -16,8 +16,7 @@ class SortEnforcer(object):
         self.last_seen = None
 
     def check_and_update(self, new_value):
-        if (self.last_seen is not None and
-            self.last_seen > new_value):
+        if self.last_seen is not None and self.last_seen > new_value:
             raise UnsortedException('Saw %s after %s' %
                                     (new_value, self.last_seen))
         self.last_seen = new_value
@@ -88,7 +87,8 @@ class LDiffer(LDIFParser):
                 self.cur_old_dn_entry.dn == dn)
 
     def _is_old_dn_entry_prev(self, dn):
-        return self._is_valid_cur_old_dn_entry() and self.cur_old_dn_entry.dn < dn
+        return (self._is_valid_cur_old_dn_entry() and
+                self.cur_old_dn_entry.dn < dn)
 
     def _is_valid_cur_old_dn_entry(self):
         return _is_valid_dn_entry(self.cur_old_dn_entry)
@@ -134,7 +134,7 @@ class DiffWriter(object):
 
     def handle_change(self, old_dn_entry, new_dn_entry):
         if old_dn_entry.dn != new_dn_entry.dn:
-            raise Exception("In a change operation, old and new dns must be the same.")
+            raise Exception("Old and new dn'ss must be the same.")
         changes = modlist.modifyModlist(old_dn_entry.entry, new_dn_entry.entry)
         self.writer.unparse(old_dn_entry.dn, changes)
 
@@ -142,7 +142,6 @@ class DiffWriter(object):
         self.diff_fil.write("dn: %s\n" % dn_entry.dn)
         self.diff_fil.write('changetype: delete\n')
         self.diff_fil.write('\n')
-
 
 
 def ldiff(old_ldif_fil, new_ldif_fil, diff_fil):

@@ -41,7 +41,6 @@ def attempt_sync(curs):
     update_sync_targets(curs, sync_targets, new_synced_to_by_target)
 
 
-
 def update_sync_targets(curs, sync_targets, new_synced_to_by_target):
     logging.info("Updating sync targets table with new synced_tos.")
     update = "UPDATE sync_targets SET synced_to = %s WHERE ldap_server = %s"
@@ -80,13 +79,14 @@ def try_write_single_value(ldap_server, ldap_conn, synced_to,
         logging.info("Skipping dead server %s", ldap_server)
     elif int(synced_to) >= int(value_id):
         logging.info("Value %s at id %s already on %s, skipping.",
-            value_name,
-            value_id,
-            ldap_server)
+                     value_name,
+                     value_id,
+                     ldap_server)
     else:
         if write_to_ldap(ldap_conn, ldap_server,
-            value_name, value_data):
-            logging.info("Synced value %s at id %s to %s", value_name, value_id, ldap_server)
+                         value_name, value_data):
+            logging.info("Synced value %s at id %s to %s",
+                         value_name, value_id, ldap_server)
             assert(synced_to_by_target[ldap_server] < value_id)
             synced_to_by_target[ldap_server] = value_id
         else:
