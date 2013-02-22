@@ -1,0 +1,8 @@
+dn: cn=Barbara Jensen, dc=example, dc=com
+changetype: modify
+delete: sn
+-
+add: sn
+sn:: aGkKdGhlcmU=
+-
+

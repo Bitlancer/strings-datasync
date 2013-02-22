@@ -98,8 +98,11 @@ def _queue_ldif_entries(ldif_fil, ldif_entries):
 class DiffWriter(object):
 
     def __init__(self, diff_fil):
-        # TODO: base64 attrs?
         self.writer = LDIFWriter(diff_fil)
+        # unfortunately we have to maintain this separately from the
+        # LDIFWriter since the writer appears to offer no way to
+        # delete a full dn.
+        self.diff_fil = diff_fil
 
     def handle_add(self, dn_entry):
         addition = modlist.addModlist(dn_entry.entry)
@@ -111,8 +114,10 @@ class DiffWriter(object):
         self.writer.unparse(old_dn_entry.dn, changes)
 
     def handle_delete(self, dn_entry):
-        # TODO: what's the python to do this?
-        print "DELETE: %r" % dn_entry
+        self.diff_fil.write("dn: %s\n" % dn_entry.dn)
+        self.diff_fil.write('changetype: delete\n')
+        self.diff_fil.write('\n')
+
 
 
 def ldiff(old_ldif_fil, new_ldif_fil, diff_fil):
@@ -139,7 +144,3 @@ def ldiff(old_ldif_fil, new_ldif_fil, diff_fil):
     while _is_valid_dn_entry(old_dn_entry):
         diff_writer.handle_delete(old_dn_entry)
         old_dn_entry = _safe_get(old_ldif_entries)
-
-
-
-

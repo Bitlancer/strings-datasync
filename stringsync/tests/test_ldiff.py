@@ -11,8 +11,27 @@ def _t_fname(fname):
 
 
 TEST_DATA = [
+    # standalone operations
+
+    # simple change
     ('entry1.txt', 'entry2.txt', 'results1.txt'),
+    # simple addition
     ('entry1.txt', 'entry3.txt', 'results2.txt'),
+    # simple deletion
+    ('entry3.txt', 'entry1.txt', 'results3.txt'),
+
+    # combination of operations
+
+    # change and addition
+    ('entry1.txt', 'entry4.txt', 'results4.txt'),
+    # change and deletion
+    ('entry4.txt', 'entry1.txt', 'results5.txt'),
+    # addition and deletion
+    ('entry1.txt', 'entry5.txt', 'results6.txt'),
+
+    # test with some base64
+    ('entry1.txt', 'entry6.txt', 'results7.txt'),
+
 ]
 
 

@@ -1,0 +1,3 @@
+dn: cn=Bob Jones, dc=example, dc=com
+changetype: delete
+
