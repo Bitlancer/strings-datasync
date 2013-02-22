@@ -1,0 +1,12 @@
+dn: cn=Barbara Jensen, dc=example, dc=com
+changetype: delete
+
+dn: cn=Bob Jones, dc=example, dc=com
+changetype: modify
+delete: cn
+-
+add: cn
+cn: Bob Jones
+cn: Bibi Jones
+-
+

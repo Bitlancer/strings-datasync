@@ -1,0 +1,13 @@
+dn: cn=Barbara Jensen, dc=example, dc=com
+changetype: add
+uid: bjensen
+title: the most famous mythical manager
+objectClass: person
+sn: Jensen
+mail: bjensen@example.com
+cn: Barbara Jensen
+cn: Babs Jensen
+
+dn: cn=Bob Jones, dc=example, dc=com
+changetype: delete
+

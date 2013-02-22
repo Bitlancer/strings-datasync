@@ -28,6 +28,12 @@ TEST_DATA = [
     ('entry4.txt', 'entry1.txt', 'results5.txt'),
     # addition and deletion
     ('entry1.txt', 'entry5.txt', 'results6.txt'),
+    # addition and change
+    ('entry1.txt', 'entry7.txt', 'results8.txt'),
+    # deletion and addition
+    ('entry5.txt', 'entry1.txt', 'results9.txt'),
+    # deletion and change
+    ('entry4.txt', 'entry8.txt', 'results10.txt'),
 
     # test with some base64
     ('entry1.txt', 'entry6.txt', 'results7.txt'),

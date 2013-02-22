@@ -1,0 +1,25 @@
+dn: cn=Albert Jones, dc=example, dc=com
+changetype: add
+uid: ajones
+title: Just a guy, y'know?
+objectClass: person
+sn: Jones
+mail: ajones@example.com
+cn: Albert Jones
+cn: Al Jones
+
+dn: cn=Barbara Jensen, dc=example, dc=com
+changetype: modify
+delete: title
+-
+add: title
+title: the absolute most famous mythical manager
+-
+delete: cn
+-
+add: cn
+cn: Barbara Jensen
+cn: Babs Jensen
+cn: Bibby Jensen
+-
+

@@ -1,0 +1,8 @@
+dn: cn=Bob Jones, dc=example, dc=com
+objectClass: person
+cn: Bob Jones
+cn: Bibi Jones
+sn: Jones
+title: the most wonderful time of the year
+mail: bjones@example.com
+uid: bjones
