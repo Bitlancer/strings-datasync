@@ -113,9 +113,12 @@ class LDIFQueuer(LDIFParser):
 
 
 def _queue_ldif_entries(ldif_fil, ldif_entries):
-    ldif_queuer = LDIFQueuer(ldif_fil, ldif_entries)
-    ldif_queuer.parse()
-    ldif_entries.put(DONE)
+    try:
+        ldif_queuer = LDIFQueuer(ldif_fil, ldif_entries)
+        ldif_queuer.parse()
+        ldif_entries.put(DONE)
+    except Exception, e:
+        ldif_entries.put(e)
 
 
 class DiffWriter(object):
