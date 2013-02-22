@@ -1,7 +1,6 @@
 #! /usr/bin/env python
 
 import logging
-import time
 
 from db import open_conn
 import runlock

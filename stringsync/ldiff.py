@@ -1,5 +1,4 @@
 from collections import namedtuple
-import logging
 from multiprocessing import Queue, Process
 
 from ldif import LDIFParser, LDIFWriter
