@@ -1,0 +1,10 @@
+dn: cn=Bob Jones, dc=example, dc=com
+changetype: add
+uid: bjones
+title: the most wonderful time of the year
+objectClass: person
+sn: Jones
+mail: bjones@example.com
+cn: Bob Jones
+cn: Bobby Jones
+
