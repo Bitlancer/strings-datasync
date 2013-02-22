@@ -6,9 +6,26 @@ from ldif import LDIFParser, LDIFWriter
 from ldap import modlist
 
 
+class UnsortedException(Exception):
+    pass
+
+
+class SortEnforcer(object):
+
+    def __init__(self):
+        self.last_seen = None
+
+    def check_and_update(self, new_value):
+        if (self.last_seen is not None and
+            self.last_seen > new_value):
+            raise UnsortedException('Saw %s after %s' %
+                                    (new_value, self.last_seen))
+        self.last_seen = new_value
+
+
 INCOMING_ENTRY_BUFFER_SIZE = 100
 DONE = "DONE"
-ERR = "ERR"
+
 
 # intentionally high--this isn't to deal with slow disks, but stuck
 # processes and programmer error
@@ -23,8 +40,8 @@ DnEntry = namedtuple('DnEntry', 'dn entry')
 
 
 def _check_error(dn_entry):
-    if dn_entry == ERR:
-        raise Exception("Error received from old ldif")
+    if isinstance(dn_entry, Exception):
+        raise dn_entry
 
 
 def _is_done(dn_entry):
@@ -44,10 +61,14 @@ class LDiffer(LDIFParser):
         self.old_ldif_entries = old_ldif_entries
         self.diff_writer = diff_writer
 
+        self.sort_enforcer = SortEnforcer()
+
         self.cur_old_dn_entry = None
         self._pull_old_dn_entry()
 
     def handle(self, dn, entry):
+        self.sort_enforcer.check_and_update(dn)
+
         while self._is_old_dn_entry_prev(dn):
             self.diff_writer.handle_delete(self.cur_old_dn_entry)
             self._pull_old_dn_entry()
@@ -82,9 +103,14 @@ class LDIFQueuer(LDIFParser):
     def __init__(self, ldif_fil, ldif_entries):
         LDIFParser.__init__(self, ldif_fil)
         self.ldif_entries = ldif_entries
+        self.sort_enforcer = SortEnforcer()
 
     def handle(self, dn, entry):
-        self.ldif_entries.put(DnEntry(dn, entry))
+        try:
+            self.sort_enforcer.check_and_update(dn)
+            self.ldif_entries.put(DnEntry(dn, entry))
+        except UnsortedException, e:
+            self.ldif_entries.put(e)
 
 
 def _queue_ldif_entries(ldif_fil, ldif_entries):
@@ -92,8 +118,6 @@ def _queue_ldif_entries(ldif_fil, ldif_entries):
     ldif_queuer.parse()
     ldif_entries.put(DONE)
 
-
-# TODO: asserts on sortedness of file
 
 class DiffWriter(object):
 

@@ -41,13 +41,19 @@ TEST_DATA = [
 ]
 
 
-def _check_expected(old_ldif_fname, new_ldif_fname, ldif_diff_fname):
+def _diff(old_ldif_fname, new_ldif_fname, diff_fil):
     with open(_t_fname(old_ldif_fname), 'rb') as old_ldif_fil:
         with open(_t_fname(new_ldif_fname), 'rb') as new_ldif_fil:
-            with open(_t_fname(ldif_diff_fname), 'rb') as results_fil:
-                diff_fil = StringIO()
-                ldiff.ldiff(old_ldif_fil, new_ldif_fil, diff_fil)
-                eq_(results_fil.read(), diff_fil.getvalue())
+            ldiff.ldiff(old_ldif_fil, new_ldif_fil, diff_fil)
+
+
+def _check_expected(old_ldif_fname, new_ldif_fname, ldif_diff_fname):
+    diff_fil = StringIO()
+    _diff(old_ldif_fname, new_ldif_fname, diff_fil)
+    actual = diff_fil.getvalue()
+    with open(_t_fname(ldif_diff_fname), 'rb') as results_fil:
+        expected = results_fil.read()
+    eq_(expected, actual)
 
 
 def test_ldiff_cases():
@@ -60,5 +66,16 @@ def test_handle_change_protects_dns():
     stringio = StringIO()
     diff_writer = ldiff.DiffWriter(stringio)
     diff_writer.handle_change(ldiff.DnEntry('hi', {}),
-                              ldiff.DnEntry('bye', {}))
+                             ldiff.DnEntry('bye', {}))
 
+
+@raises(ldiff.UnsortedException)
+def test_unsorted_old_ldif_errs():
+    diff_fil = StringIO()
+    _diff('unsorted.txt', 'entry1.txt', diff_fil)
+
+
+@raises(ldiff.UnsortedException)
+def test_unsorted_new_ldif_errs():
+    diff_fil = StringIO()
+    _diff('entry1.txt', 'unsorted.txt', diff_fil)
