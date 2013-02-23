@@ -38,6 +38,12 @@ TEST_DATA = [
 
     # test with some base64
     ('entry1.txt', 'entry6.txt', 'results7.txt'),
+
+    # empty old
+    ('empty.txt', 'entry1.txt', 'results11.txt'),
+
+    # empty new
+    ('entry1.txt', 'empty.txt', 'results12.txt'),
 ]
 
 
