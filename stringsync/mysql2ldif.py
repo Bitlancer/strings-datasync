@@ -6,7 +6,7 @@ import sys
 from ldif import LDIFWriter
 
 from db import open_conn
-from organizations import find_organizations, Organization
+from organizations import find_organization, Organization
 
 
 # TODO: ewj make sure that everything is sorted...
@@ -29,23 +29,13 @@ def _organization_dict(organization):
                o=_organization_o(organization))
 
 
-
-def _dump_organization(organization, ldif_writer):
+def _dump_organization(curs, ldif_writer, organization_id):
+    organization = find_organization(curs, organization_id)
     ldif_writer.unparse(_organization_dn(organization),
                         _organization_dict(organization))
 
 
-def _dump_organizations(curs, ldif_writer):
-    organizations = find_organizations(curs)
-    for organization in organizations:
-        _dump_organization(organization, ldif_writer)
-
-def dump_ldif(outfile):
+def dump_ldif(conn, outfile, organization_id):
     ldif_writer = LDIFWriter(outfile)
-    conn = open_conn()
     curs = conn.cursor()
-
-    _dump_organizations(curs, ldif_writer)
-
-if __name__ == '__main__':
-    dump_ldif(sys.stdout)
+    _dump_organization(curs, ldif_writer, organization_id)
