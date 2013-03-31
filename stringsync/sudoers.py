@@ -46,13 +46,3 @@ def _find_sudos(curs, organization_id):
     return list(curs.fetchall())
 
 
-def _dump_sudo(sudo_info, organization, ldif_writer):
-    attrs_with_list_vals = dict([(name, [val])
-                                 for name, val
-                                 in sudo_info.attrs.items()])
-
-    ldif_writer.unparse("cn=%s,%s" % (sudo_info.name, organizations.dn(organization)),
-                        description=["%s sudo role" % sudo_info.name],
-                        objectclass=["sudoRole"],
-                        sudouser=sudo_info.users,
-                        **attrs_with_list_vals)

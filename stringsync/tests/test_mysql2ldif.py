@@ -110,7 +110,24 @@ class TestMysql2Ldif(unittest.TestCase):
 
                           dn: ou=users,ou=people,%(org_dn)s
                           objectclass: organizationalUnit
-                          ou: users\n\n""")
+                          ou: users
+
+                          dn: uid=bobsudoer,ou=users,ou=unix,Organization 1
+                          authorizedservice: *
+                          cn: Bob Sudoer
+                          givenname: Bob
+                          homedirectory: /home/bobsudoer
+                          host: *
+                          loginshell: /bin/bash
+                          objectclass: inetOrgPerson
+                          objectclass: posixAccount
+                          objectclass: authorizedServiceObject
+                          objectclass: hostObject
+                          objectclass: ldapPublicKey
+                          objectclass: top
+                          sn: Sudoer
+                          uid: bobsudoer
+                          userpassword: bobsudoerpw\n\n""")
 
         expected = expected % dict(org_dc=organizations.dc(org_1),
                                    org_dn=organizations.dn(org_1),

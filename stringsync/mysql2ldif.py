@@ -8,7 +8,7 @@ from ldif import LDIFWriter
 from db import open_conn
 from stringsync import organizations
 from stringsync.organizations import find_organization, Organization
-from stringsync import sudoers
+from stringsync import sudoers, users
 
 
 def _organization_dict(organization):
@@ -82,10 +82,50 @@ def _dump_sudo(sudo_info, organization, ldif_writer):
 
 # TODO: ask mj...is sudohost important?  It's not here.
 
+def _dump_user_records(curs, ldif_writer, organization):
+   for user_info in users.find_all(curs, organization_id=organization.id):
+      _dump_user_record(user_info, organization, ldif_writer)
+
+
+def _dump_user_record(user_info, organization, ldif_writer):
+   ldif_writer.unparse('uid=%s,ou=users,ou=unix,%s' % (user_info.name,
+                                                       organizations.dn(organization)),
+                       dict(userpassword=[user_info.password],
+                            cn=["%s %s" % (user_info.first_name,
+                                           user_info.last_name)],
+                            uid=[user_info.name],
+                            sn=[user_info.last_name],
+                            givenname=[user_info.first_name],
+                            objectclass=['inetOrgPerson',
+                                         'posixAccount',
+                                         'authorizedServiceObject',
+                                         'hostObject',
+                                         'ldapPublicKey',
+                                         'top'],
+                            loginshell=['/bin/bash'],
+                            host=['*'],
+                            authorizedservice=['*'],
+                            homedirectory=['/home/%s' % user_info.name],))
+   # TODO: ask mj what to do about these?
+   #
+   # gidnumber: 2000
+   #
+   # uidnumber: 2002
+
+
 
 def _dump_users(curs, ldif_writer, organization):
     _dump_user_ous(ldif_writer, organization)
+    _dump_user_records(curs, ldif_writer, organization)
     # TODO: user records
+
+
+def _dump_hosts(curs, ldif_writer, organization):
+   # dn: ou=hosts,dc=40mm-networks,dc=net
+   # objectclass: organizationalUnit
+   # ou: hosts
+   pass
+
 
 class SortedLdifWriter(object):
 
@@ -110,8 +150,7 @@ def dump_ldif(conn, outfile, organization_id):
     _dump_organization(curs, sorted_ldif_writer, organization)
     _dump_users(curs, sorted_ldif_writer, organization)
     _dump_sudos(curs, sorted_ldif_writer, organization)
+    _dump_hosts(curs, sorted_ldif_writer, organization)
+    # TODO: a group for each user as well
     sorted_ldif_writer.write()
 
-    # TODO: hosts
-
-    # TODO: a group for each user as well
