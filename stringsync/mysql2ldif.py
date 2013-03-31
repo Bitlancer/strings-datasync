@@ -11,8 +11,6 @@ from stringsync.organizations import find_organization, Organization
 from stringsync import sudoers
 
 
-# TODO: ewj make sure that everything is sorted...
-
 def _organization_dict(organization):
    return dict(objectclass=['organization', 'dcObject'],
                dc=[organizations.dc(organization)],
@@ -81,20 +79,39 @@ def _dump_sudo(sudo_info, organization, ldif_writer):
                              sudouser=sudo_info.users,
                              **attrs_with_list_vals))
 
-# TODO: ask mj...is sudohost important?
+
+# TODO: ask mj...is sudohost important?  It's not here.
 
 
 def _dump_users(curs, ldif_writer, organization):
     _dump_user_ous(ldif_writer, organization)
     # TODO: user records
 
+class SortedLdifWriter(object):
+
+   def __init__(self, ldif_writer):
+      self.ldif_writer = ldif_writer
+      self.buffer = []
+
+   def unparse(self, dn, attrs):
+      self.buffer.append((dn, attrs))
+
+   def write(self):
+      self.buffer.sort()
+      for (dn, attrs) in self.buffer:
+         self.ldif_writer.unparse(dn, attrs)
+
 
 def dump_ldif(conn, outfile, organization_id):
     ldif_writer = LDIFWriter(outfile)
+    sorted_ldif_writer = SortedLdifWriter(ldif_writer)
     curs = conn.cursor()
     organization = organizations.find_organization(curs, organization_id)
-    _dump_organization(curs, ldif_writer, organization)
-    _dump_users(curs, ldif_writer, organization)
-    _dump_sudos(curs, ldif_writer, organization)
-    # TODO: this is different than users......_dump_ldap_users()
+    _dump_organization(curs, sorted_ldif_writer, organization)
+    _dump_users(curs, sorted_ldif_writer, organization)
+    _dump_sudos(curs, sorted_ldif_writer, organization)
+    sorted_ldif_writer.write()
+
     # TODO: hosts
+
+    # TODO: a group for each user as well

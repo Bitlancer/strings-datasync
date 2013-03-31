@@ -17,12 +17,12 @@ def open_conn():
     if in_test:
         db = MySQLdb.connect(host='localhost',
                              user='root',
-                             passwd='',
+                             passwd='root',
                              db='stringstest')
     else:
         # TODO: add ENV sensor here for db creds / namep
         db = MySQLdb.connect(host='localhost',
                              user='root',
-                             passwd='',
+                             passwd='root',
                              db='stringsdev')
     return db

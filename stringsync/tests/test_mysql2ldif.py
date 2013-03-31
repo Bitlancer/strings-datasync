@@ -32,30 +32,30 @@ class TestMysql2Ldif(unittest.TestCase):
                           objectclass: organization
                           objectclass: dcObject
 
-                          dn: ou=people,%(org_dn)s
-                          objectclass: organizationalUnit
-                          ou: people
+                          dn: cn=defaults,ou=sudoers,ou=unix,%(org_dn)s
+                          cn: defaults
+                          description: Default sudo options
+                          objectclass: sudoRole
 
                           dn: ou=groups,ou=people,%(org_dn)s
                           objectclass: organizationalUnit
                           ou: groups
 
-                          dn: ou=users,ou=people,%(org_dn)s
+                          dn: ou=people,%(org_dn)s
                           objectclass: organizationalUnit
-                          ou: users
-
-                          dn: ou=unix,%(org_dn)s
-                          objectclass: organizationalUnit
-                          ou: unix
+                          ou: people
 
                           dn: ou=sudoers,ou=unix,%(org_dn)s
                           objectclass: organizationalUnit
                           ou: sudoers
 
-                          dn: cn=defaults,ou=sudoers,ou=unix,%(org_dn)s
-                          cn: defaults
-                          description: Default sudo options
-                          objectclass: sudoRole\n\n""")
+                          dn: ou=unix,%(org_dn)s
+                          objectclass: organizationalUnit
+                          ou: unix
+
+                          dn: ou=users,ou=people,%(org_dn)s
+                          objectclass: organizationalUnit
+                          ou: users\n\n""")
 
         expected = expected % dict(org_dc=organizations.dc(org_1),
                                    org_dn=organizations.dn(org_1),
@@ -80,26 +80,6 @@ class TestMysql2Ldif(unittest.TestCase):
                           objectclass: organization
                           objectclass: dcObject
 
-                          dn: ou=people,%(org_dn)s
-                          objectclass: organizationalUnit
-                          ou: people
-
-                          dn: ou=groups,ou=people,%(org_dn)s
-                          objectclass: organizationalUnit
-                          ou: groups
-
-                          dn: ou=users,ou=people,%(org_dn)s
-                          objectclass: organizationalUnit
-                          ou: users
-
-                          dn: ou=unix,%(org_dn)s
-                          objectclass: organizationalUnit
-                          ou: unix
-
-                          dn: ou=sudoers,ou=unix,%(org_dn)s
-                          objectclass: organizationalUnit
-                          ou: sudoers
-
                           dn: cn=defaults,ou=sudoers,ou=unix,%(org_dn)s
                           cn: defaults
                           description: Default sudo options
@@ -110,7 +90,27 @@ class TestMysql2Ldif(unittest.TestCase):
                           objectclass: sudoRole
                           sudoCommand: ALL
                           sudoRunAs: ALL
-                          sudouser: bobsudoer\n\n""")
+                          sudouser: bobsudoer
+
+                          dn: ou=groups,ou=people,%(org_dn)s
+                          objectclass: organizationalUnit
+                          ou: groups
+
+                          dn: ou=people,%(org_dn)s
+                          objectclass: organizationalUnit
+                          ou: people
+
+                          dn: ou=sudoers,ou=unix,%(org_dn)s
+                          objectclass: organizationalUnit
+                          ou: sudoers
+
+                          dn: ou=unix,%(org_dn)s
+                          objectclass: organizationalUnit
+                          ou: unix
+
+                          dn: ou=users,ou=people,%(org_dn)s
+                          objectclass: organizationalUnit
+                          ou: users\n\n""")
 
         expected = expected % dict(org_dc=organizations.dc(org_1),
                                    org_dn=organizations.dn(org_1),
