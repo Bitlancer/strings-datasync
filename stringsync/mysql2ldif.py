@@ -100,16 +100,6 @@ def _format_member(member_name, member_dn):
    return 'uid=%s,%s' % (member_name, member_dn)
 
 
-# dn: cn=developers,ou=groups,ou=people,dc=bitlancer-example,dc=net
-# cn: developers
-# member: uid=mjuszczak,ou=users,ou=people,dc=bitlancer-example,dc=net
-# objectClass: groupOfNames
-# objectClass: top
-# structuralObjectClass: groupOfNames
-
-
-
-
 def _select_active_team_member_names(team_id, db):
    select = """
             SELECT u.name
