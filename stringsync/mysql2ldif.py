@@ -49,6 +49,19 @@ def dump_people_ou(db, ldif_writer):
    return build_dn('ou=people', ldif_writer)
 
 
+def dump_people_groups_ou(db, ldif_writer):
+   """
+   Returns the extended ldif writer of the people groups ou for use in
+   tree-like dumping.
+   """
+   ldif_writer.unparse(dn='ou=groups',
+                       attrs=dict(
+         ou=['groups'],
+         objectClass=['organizationalUnit'],
+         structuralObjectClass=['organizationalUnit']))
+   return build_dn('ou=groups', ldif_writer)
+
+
 def organization_name(organization_id, db):
    """
    Get the name of an organization.
