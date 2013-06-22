@@ -1,156 +1,32 @@
-#!/usr/bin/env python
+"""
+Dump the strings mysql data for a given organization to a full ldif.
+"""
 
-import logging
-import sys
-
-from ldif import LDIFWriter
-
-from db import open_conn
-from stringsync import organizations
-from stringsync.organizations import find_organization, Organization
-from stringsync import sudoers, users
-
-
-def _organization_dict(organization):
-   return dict(objectclass=['organization', 'dcObject'],
-               dc=[organizations.dc(organization)],
-               o=[organizations.o(organization)])
-
-
-def _dump_organization(curs, ldif_writer, organization):
-    ldif_writer.unparse(organizations.dn(organization),
-                        _organization_dict(organization))
-
-
-def _dump_user_ous(ldif_writer, organization):
-    """
-    Dump the organizational units that should always be there for
-    users, namely: people, and under that, groups and users.
-    """
-    ldif_writer.unparse(
-        "ou=people,%s" % organizations.dn(organization),
-        dict(ou=["people"],
-             objectclass=['organizationalUnit']))
-
-    ldif_writer.unparse(
-        "ou=groups,ou=people,%s" % organizations.dn(organization),
-        dict(ou=["groups"],
-             objectclass=['organizationalUnit']))
-
-    ldif_writer.unparse(
-        "ou=users,ou=people,%s" % organizations.dn(organization),
-        dict(ou=["users"],
-             objectclass=['organizationalUnit']))
+def organization_dn(organization_id, db):
+   select = """
+             SELECT val
+               FROM config
+               WHERE
+                 organization_id = %(organization_id)s
+                   AND
+                 var = 'dns.external.domain'
+             """
+   curs = db.cursor()
+   try:
+      curs.execute(select, dict(organization_id=organization_id))
+      rows = curs.fetchall()
+      if not rows:
+         raise Exception("No dns.external.domain for organization %s",
+                         organization_id)
+      if len(rows) > 1:
+         raise Exception("Multiple values for dns.external.domain %s" %
+                         rows)
+      dns_external_domain = rows[0][0]
+      return _format_org_dn(dns_external_domain)
+   finally:
+      if curs:
+         curs.close()
 
 
-def _dump_sudos(curs, ldif_writer, organization):
-    # TODO: make these all programmatic if they continue to fit
-    # pattern, and ask matty j where they come from
-    ldif_writer.unparse(
-        "ou=unix,%s" % organizations.dn(organization),
-        dict(objectclass=["organizationalUnit"],
-             ou=["unix"]))
-
-    ldif_writer.unparse(
-        "ou=sudoers,ou=unix,%s" % organizations.dn(organization),
-        dict(objectclass=["organizationalUnit"],
-             ou=["sudoers"]))
-
-    # TODO: ask matt where this comes from...
-    ldif_writer.unparse(
-        "cn=defaults,ou=sudoers,ou=unix,%s" % organizations.dn(organization),
-        dict(objectclass=["sudoRole"],
-             description=["Default sudo options"],
-             cn=["defaults"]))
-
-    for sudo_info in sudoers.find_all(curs, organization_id=organization.id):
-        _dump_sudo(sudo_info, organization, ldif_writer)
-
-
-def _dump_sudo(sudo_info, organization, ldif_writer):
-    attrs_with_list_vals = dict([(name, [val])
-                                 for name, val
-                                 in sudo_info.attributes.items()])
-
-    ldif_writer.unparse("cn=%s,ou=sudoers,ou=unix,%s" %
-                        (sudo_info.name, organizations.dn(organization)),
-                        dict(description=["%s sudo role" % sudo_info.name],
-                             objectclass=["sudoRole"],
-                             sudouser=sudo_info.users,
-                             **attrs_with_list_vals))
-
-
-# TODO: ask mj...is sudohost important?  It's not here.
-
-def _dump_user_records(curs, ldif_writer, organization):
-   for user_info in users.find_all(curs, organization_id=organization.id):
-      _dump_user_record(user_info, organization, ldif_writer)
-
-
-def _dump_user_record(user_info, organization, ldif_writer):
-   ldif_writer.unparse('uid=%s,ou=users,ou=unix,%s' % (user_info.name,
-                                                       organizations.dn(organization)),
-                       dict(userpassword=[user_info.password],
-                            cn=["%s %s" % (user_info.first_name,
-                                           user_info.last_name)],
-                            uid=[user_info.name],
-                            sn=[user_info.last_name],
-                            givenname=[user_info.first_name],
-                            objectclass=['inetOrgPerson',
-                                         'posixAccount',
-                                         'authorizedServiceObject',
-                                         'hostObject',
-                                         'ldapPublicKey',
-                                         'top'],
-                            loginshell=['/bin/bash'],
-                            host=['*'],
-                            authorizedservice=['*'],
-                            homedirectory=['/home/%s' % user_info.name],))
-   # TODO: ask mj what to do about these?
-   #
-   # gidnumber: 2000
-   #
-   # uidnumber: 2002
-
-
-
-def _dump_users(curs, ldif_writer, organization):
-    _dump_user_ous(ldif_writer, organization)
-    _dump_user_records(curs, ldif_writer, organization)
-    # TODO: user records
-
-
-def _dump_hosts(curs, ldif_writer, organization):
-   # dn: ou=hosts,dc=40mm-networks,dc=net
-   # objectclass: organizationalUnit
-   # ou: hosts
-   pass
-
-
-class SortedLdifWriter(object):
-
-   def __init__(self, ldif_writer):
-      self.ldif_writer = ldif_writer
-      self.buffer = []
-
-   def unparse(self, dn, attrs):
-      self.buffer.append((dn, attrs))
-
-   def write(self):
-      self.buffer.sort()
-      for (dn, attrs) in self.buffer:
-         self.ldif_writer.unparse(dn, attrs)
-
-
-def dump_ldif(conn, outfile, organization_id):
-    ldif_writer = LDIFWriter(outfile)
-    sorted_ldif_writer = SortedLdifWriter(ldif_writer)
-    curs = conn.cursor()
-    organization = organizations.find_organization(curs, organization_id)
-    _dump_organization(curs, sorted_ldif_writer, organization)
-    _dump_users(curs, sorted_ldif_writer, organization)
-    _dump_sudos(curs, sorted_ldif_writer, organization)
-    _dump_hosts(curs, sorted_ldif_writer, organization)
-    # TODO: a group for each user as well
-    sorted_ldif_writer.write()
-
+def _format_org_dn(dns_external_domain):
+   return ','.join(["dc=%s" % s for s in dns_external_domain.split('.')])

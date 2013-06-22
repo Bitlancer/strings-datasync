@@ -1,135 +1,31 @@
-from StringIO import StringIO
-from textwrap import dedent
-import unittest
+from ConfigParser import SafeConfigParser
 
 from nose.tools import ok_, eq_
 
-from stringsync import db, fixtures, mysql2ldif, organizations
+from stringsync import db
+from stringsync.mysql2ldif import organization_dn
+from stringsync import fixtures
 
 
-class TestMysql2Ldif(unittest.TestCase):
+class TestMysql2Ldif(object):
 
     def setUp(self):
         db.start_test()
-        self.conn = db.open_conn()
+        config_parser = SafeConfigParser()
+
+        with open('db.ini', 'rb') as fil:
+            config_parser.readfp(fil)
+            self.conn = db.open_conn(config_parser)
+        # in case stuff wasn't cleaned up
         fixtures.clean_all(self.conn)
 
     def tearDown(self):
         fixtures.clean_all(self.conn)
         db.end_test()
 
-    def test_org_only_dump(self):
-        org_1_id = fixtures.f_organization_1(self.conn)
-        curs = self.conn.cursor()
-        org_1 = organizations.find_organization(curs, org_1_id)
-        outfile = StringIO()
-        mysql2ldif.dump_ldif(self.conn, outfile, org_1_id)
+    def test_organization_dn(self):
+        org_1 = fixtures.f_organization_1(self.conn)
+        _conf = fixtures.f_dns_external_domain_config_1(self.conn)
+        eq_('dc=org-one-infra,dc=net',
+            organization_dn(org_1, self.conn))
 
-        expected = dedent("""\
-                          dn: %(org_dn)s
-                          dc: %(org_dc)s
-                          o: %(org_o)s
-                          objectclass: organization
-                          objectclass: dcObject
-
-                          dn: cn=defaults,ou=sudoers,ou=unix,%(org_dn)s
-                          cn: defaults
-                          description: Default sudo options
-                          objectclass: sudoRole
-
-                          dn: ou=groups,ou=people,%(org_dn)s
-                          objectclass: organizationalUnit
-                          ou: groups
-
-                          dn: ou=people,%(org_dn)s
-                          objectclass: organizationalUnit
-                          ou: people
-
-                          dn: ou=sudoers,ou=unix,%(org_dn)s
-                          objectclass: organizationalUnit
-                          ou: sudoers
-
-                          dn: ou=unix,%(org_dn)s
-                          objectclass: organizationalUnit
-                          ou: unix
-
-                          dn: ou=users,ou=people,%(org_dn)s
-                          objectclass: organizationalUnit
-                          ou: users\n\n""")
-
-        expected = expected % dict(org_dc=organizations.dc(org_1),
-                                   org_dn=organizations.dn(org_1),
-                                   org_o=organizations.o(org_1))
-        eq_(expected, outfile.getvalue())
-
-    def test_sudo_dump(self):
-        """
-        Test that dumping with a single sudo user works correctly.
-        """
-        fixtures.f_sudo_user_1(self.conn)
-        org_1_id = fixtures.f_organization_1(self.conn)
-        curs = self.conn.cursor()
-        org_1 = organizations.find_organization(curs, org_1_id)
-        outfile = StringIO()
-        mysql2ldif.dump_ldif(self.conn, outfile, org_1_id)
-
-        expected = dedent("""\
-                          dn: %(org_dn)s
-                          dc: %(org_dc)s
-                          o: %(org_o)s
-                          objectclass: organization
-                          objectclass: dcObject
-
-                          dn: cn=defaults,ou=sudoers,ou=unix,%(org_dn)s
-                          cn: defaults
-                          description: Default sudo options
-                          objectclass: sudoRole
-
-                          dn: cn=root,ou=sudoers,ou=unix,%(org_dn)s
-                          description: root sudo role
-                          objectclass: sudoRole
-                          sudoCommand: ALL
-                          sudoRunAs: ALL
-                          sudouser: bobsudoer
-
-                          dn: ou=groups,ou=people,%(org_dn)s
-                          objectclass: organizationalUnit
-                          ou: groups
-
-                          dn: ou=people,%(org_dn)s
-                          objectclass: organizationalUnit
-                          ou: people
-
-                          dn: ou=sudoers,ou=unix,%(org_dn)s
-                          objectclass: organizationalUnit
-                          ou: sudoers
-
-                          dn: ou=unix,%(org_dn)s
-                          objectclass: organizationalUnit
-                          ou: unix
-
-                          dn: ou=users,ou=people,%(org_dn)s
-                          objectclass: organizationalUnit
-                          ou: users
-
-                          dn: uid=bobsudoer,ou=users,ou=unix,Organization 1
-                          authorizedservice: *
-                          cn: Bob Sudoer
-                          givenname: Bob
-                          homedirectory: /home/bobsudoer
-                          host: *
-                          loginshell: /bin/bash
-                          objectclass: inetOrgPerson
-                          objectclass: posixAccount
-                          objectclass: authorizedServiceObject
-                          objectclass: hostObject
-                          objectclass: ldapPublicKey
-                          objectclass: top
-                          sn: Sudoer
-                          uid: bobsudoer
-                          userpassword: bobsudoerpw\n\n""")
-
-        expected = expected % dict(org_dc=organizations.dc(org_1),
-                                   org_dn=organizations.dn(org_1),
-                                   org_o=organizations.o(org_1))
-        eq_(expected, outfile.getvalue())
