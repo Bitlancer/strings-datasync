@@ -55,17 +55,17 @@ def f_organization_1(conn):
     return f_organization(conn, name='Org One', short_name='OrgOne')
 
 
-def f_dns_external_domain_config_1(conn):
+def f_ldap_domain_config_1(conn):
     return f_config(conn,
                     organization_id=f_organization_1(conn),
-                    var='dns.external.domain',
+                    var='ldap.domain',
                     val='org-one-infra.net')
 
 
-def f_dns_external_domain_config_2(conn):
+def f_ldap_domain_config_2(conn):
     return f_config(conn,
                     organization_id=f_organization_1(conn),
-                    var='dns.external.domain',
+                    var='ldap.domain',
                     val='org-one-infra-2.net')
 
 

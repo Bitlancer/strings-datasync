@@ -6,8 +6,8 @@ from ldif import LDIFWriter
 from nose.tools import ok_, eq_, raises
 
 from stringsync import db
-from stringsync.mysql2ldif import organization_dn, NoDnsDomain, \
-    AmbiguousDnsDomain, organization_name, dump_organization, \
+from stringsync.mysql2ldif import organization_dn, NoLdapDomain, \
+    AmbiguousLdapDomain, organization_name, dump_organization, \
     dump_people_ou
 from stringsync import fixtures as f
 from stringsync.ldif_writers import BuildDnLdifWriter, build_dn
@@ -44,20 +44,20 @@ class TestMysql2Ldif(object):
 
     def test_organization_dn(self):
         org_1 = f.f_organization_1(self.conn)
-        _conf = f.f_dns_external_domain_config_1(self.conn)
+        _conf = f.f_ldap_domain_config_1(self.conn)
         eq_('dc=org-one-infra,dc=net',
             organization_dn(org_1, self.conn))
 
-    @raises(NoDnsDomain)
+    @raises(NoLdapDomain)
     def test_barfs_on_no_domain(self):
         org_1 = f.f_organization_1(self.conn)
         organization_dn(org_1, self.conn)
 
-    @raises(AmbiguousDnsDomain)
+    @raises(AmbiguousLdapDomain)
     def test_barfs_on_ambig_domain(self):
         org_1 = f.f_organization_1(self.conn)
-        _conf = f.f_dns_external_domain_config_1(self.conn)
-        _conf2 = f.f_dns_external_domain_config_2(self.conn)
+        _conf = f.f_ldap_domain_config_1(self.conn)
+        _conf2 = f.f_ldap_domain_config_2(self.conn)
         organization_dn(org_1, self.conn)
 
     def test_organization_name(self):
@@ -67,7 +67,7 @@ class TestMysql2Ldif(object):
 
     def test_dump_organization(self):
         org_1 = f.f_organization_1(self.conn)
-        _conf = f.f_dns_external_domain_config_1(self.conn)
+        _conf = f.f_ldap_domain_config_1(self.conn)
         ldif = StrLdif()
         # make sure we return a modified ldif writer for further use
         new_ldif = dump_organization(org_1, self.conn, ldif)

@@ -6,18 +6,16 @@ from stringsync.db import select_row, select_rows
 from stringsync.ldif_writers import build_dn
 
 
-class NoDnsDomain(Exception):
+class NoLdapDomain(Exception):
    """
-   Raised when an organization has no dns.external.domain config
-   value.
+   Raised when an organization has no ldap.domain config value.
    """
    pass
 
 
-class AmbiguousDnsDomain(Exception):
+class AmbiguousLdapDomain(Exception):
    """
-   Raised when an organization has multiple dns.external.domain config
-   values.
+   Raised when an organization has multiple ldap.domain config values.
    """
    pass
 
@@ -73,21 +71,21 @@ def organization_dn(organization_id, db):
                WHERE
                  organization_id = %(organization_id)s
                    AND
-                 var = 'dns.external.domain'
+                 var = 'ldap.domain'
              """
    rows = select_rows(db, select, dict(organization_id=organization_id))
    if not rows:
-      raise NoDnsDomain("No dns.external.domain for organization %s",
+      raise NoLdapDomain("No ldap.domain for organization %s",
                         organization_id)
    if len(rows) > 1:
-      raise AmbiguousDnsDomain("Multiple values for dns.external.domain %s" %
+      raise AmbiguousLdapDomain("Multiple values for ldap.domain %s" %
                                str(rows))
-   dns_external_domain = rows[0][0]
-   return _format_org_dn(dns_external_domain)
+   ldap_domain = rows[0][0]
+   return _format_org_dn(ldap_domain)
 
 
-def _format_org_dn(dns_external_domain):
-   return ','.join(["dc=%s" % s for s in dns_external_domain.split('.')])
+def _format_org_dn(ldap_domain):
+   return ','.join(["dc=%s" % s for s in ldap_domain.split('.')])
 
 
 def _org_dc_from_dn(dn):
