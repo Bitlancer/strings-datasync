@@ -93,6 +93,7 @@ class TestMysql2Ldif(object):
         eq_(dd("""\
                dn: ou=people,dc=org-one-infra,dc=net
                objectClass: organizationalUnit
+               ou: people
                structuralObjectClass: organizationalUnit
 
                """), ldif.ldif())

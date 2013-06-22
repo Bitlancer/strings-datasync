@@ -44,7 +44,8 @@ def dump_people_ou(db, ldif_writer):
    ldif_writer.unparse(dn='ou=people',
                        attrs=dict(
          objectClass=['organizationalUnit'],
-         structuralObjectClass=['organizationalUnit']))
+         structuralObjectClass=['organizationalUnit'],
+         ou=['people']))
    return build_dn('ou=people', ldif_writer)
 
 
