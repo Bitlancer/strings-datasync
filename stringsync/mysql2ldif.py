@@ -2,6 +2,22 @@
 Dump the strings mysql data for a given organization to a full ldif.
 """
 
+class NoDnsDomain(Exception):
+   """
+   Raised when an organization has no dns.external.domain config
+   value.
+   """
+   pass
+
+
+class AmbiguousDnsDomain(Exception):
+   """
+   Raised when an organization has multiple dns.external.domain config
+   values.
+   """
+   pass
+
+
 def organization_dn(organization_id, db):
    select = """
              SELECT val
@@ -16,11 +32,11 @@ def organization_dn(organization_id, db):
       curs.execute(select, dict(organization_id=organization_id))
       rows = curs.fetchall()
       if not rows:
-         raise Exception("No dns.external.domain for organization %s",
-                         organization_id)
+         raise NoDnsDomain("No dns.external.domain for organization %s",
+                           organization_id)
       if len(rows) > 1:
-         raise Exception("Multiple values for dns.external.domain %s" %
-                         rows)
+         raise AmbiguousDnsDomain("Multiple values for dns.external.domain %s" %
+                                  str(rows))
       dns_external_domain = rows[0][0]
       return _format_org_dn(dns_external_domain)
    finally:

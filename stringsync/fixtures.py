@@ -62,6 +62,13 @@ def f_dns_external_domain_config_1(conn):
                     val='org-one-infra.net')
 
 
+def f_dns_external_domain_config_2(conn):
+    return f_config(conn,
+                    organization_id=f_organization_1(conn),
+                    var='dns.external.domain',
+                    val='org-one-infra-2.net')
+
+
 @fixture
 def f_organization(conn, name=None, short_name=None, is_disabled=False):
     sql = """INSERT INTO organization
