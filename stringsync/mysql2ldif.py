@@ -3,6 +3,7 @@ Dump the strings mysql data for a given organization to a full ldif.
 """
 
 from stringsync.db import select_row, select_rows
+from stringsync.ldif_writers import build_dn
 
 
 class NoDnsDomain(Exception):
@@ -23,7 +24,8 @@ class AmbiguousDnsDomain(Exception):
 
 def dump_organization(organization_id, db, ldif_writer):
    """
-   Returns the dn of the organization for use in tree-like dumping.
+   Returns the extended ldif writer of the organization for use in
+   tree-like dumping.
    """
    org_dn = organization_dn(organization_id, db)
    full_name = organization_name(organization_id, db)
@@ -33,6 +35,7 @@ def dump_organization(organization_id, db, ldif_writer):
                                   structuralObjectClass=['organization'],
                                   o=[full_name],
                                   dc=[_org_dc_from_dn(org_dn)]))
+   return build_dn(org_dn, ldif_writer)
 
 
 def organization_name(organization_id, db):
@@ -82,3 +85,5 @@ def _org_dc_from_dn(dn):
       raise ValueError("org dn %s didn't start with dc=")
    else:
       return dc1[len('dc='):]
+
+

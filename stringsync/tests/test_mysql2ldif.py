@@ -9,6 +9,7 @@ from stringsync import db
 from stringsync.mysql2ldif import organization_dn, NoDnsDomain, \
     AmbiguousDnsDomain, organization_name, dump_organization
 from stringsync import fixtures as f
+from stringsync.ldif_writers import BuildDnLdifWriter
 
 
 class StrLdif(object):
@@ -67,7 +68,9 @@ class TestMysql2Ldif(object):
         org_1 = f.f_organization_1(self.conn)
         _conf = f.f_dns_external_domain_config_1(self.conn)
         ldif = StrLdif()
-        dump_organization(org_1, self.conn, ldif)
+        # make sure we return a modified ldif writer for further use
+        new_ldif = dump_organization(org_1, self.conn, ldif)
+        _check_dn_ldif_writer(new_ldif, 'dc=org-one-infra,dc=net')
         eq_(dd("""\
                dn: dc=org-one-infra,dc=net
                dc: org-one-infra
@@ -77,6 +80,11 @@ class TestMysql2Ldif(object):
                structuralObjectClass: organization
 
                """), ldif.ldif())
+
+def _check_dn_ldif_writer(ldif, dn):
+    ok_(isinstance(ldif, BuildDnLdifWriter))
+    eq_(dn, ldif.dn)
+
 
 def dd(s):
     return dedent(s)
