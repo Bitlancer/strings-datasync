@@ -139,3 +139,24 @@ class BuildDnLdifWriter(object):
         self's dn.
         """
         return BuildDnLdifWriter(dn, self)
+
+    def full_dn(self):
+        """
+        Return the dn of this and any wrapped BuildDnLdifWriters.
+        """
+        wrapped_dn = full_dn(self.ldif_writer)
+        if wrapped_dn:
+            return ','.join([self.dn, wrapped_dn])
+        else:
+            return self.dn
+
+
+def full_dn(ldif_writer):
+    """
+    Convenience function, return None if ldif_writer doesn't support
+    'full_dn', else ldif_writer.full_dn()
+    """
+    if hasattr(ldif_writer, 'full_dn'):
+        return ldif_writer.full_dn()
+    else:
+        return None

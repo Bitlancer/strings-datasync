@@ -1,7 +1,7 @@
 from nose.tools import ok_, eq_, raises
 
 from stringsync.ldif_writers import SortedLdifWriter, AlreadyCommittedException, \
-    BuildDnLdifWriter
+    BuildDnLdifWriter, full_dn
 
 
 class MockLdifWriter(object):
@@ -114,3 +114,15 @@ def test_dn_nests_using_with():
     eq_([('cn=test,dc=yup', dict(foo='bar')),
          ('cn=test2,dc=more,dc=yup', dict(boo='baz'))],
         mock_ldif_writer.called_with)
+
+
+def test_full_dn():
+    mock_ldif_writer = MockLdifWriter()
+    eq_(None, full_dn(mock_ldif_writer))
+    bl1 = BuildDnLdifWriter('dc=yup', mock_ldif_writer)
+    eq_('dc=yup', bl1.full_dn())
+    eq_('dc=yup', full_dn(bl1))
+    bl2 = BuildDnLdifWriter('ou=nope', bl1)
+    eq_('ou=nope,dc=yup', bl2.full_dn())
+    eq_('ou=nope,dc=yup', full_dn(bl2))
+
