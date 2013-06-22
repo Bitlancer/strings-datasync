@@ -31,3 +31,29 @@ def open_conn(db_config):
         db = MySQLdb.connect(**_settings_from_section(db_config, 'db'))
 
     return db
+
+
+def select_rows(db, select, params):
+    curs = db.cursor()
+    try:
+        curs.execute(select, params)
+        return curs.fetchall()
+    finally:
+        if curs:
+            curs.close()
+
+
+def select_row(db, select, params):
+    curs = db.cursor()
+    try:
+        curs.execute(select, params)
+        rows = curs.fetchall()
+        if not rows:
+            return None
+        if len(rows) > 1:
+            raise Exception("Select row with %s %s found many rows %s" %
+                            (select, params, str(rows)))
+        return rows[0]
+    finally:
+        if curs:
+            curs.close()
