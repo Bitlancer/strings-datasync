@@ -1,3 +1,8 @@
+"""
+Various classes that wrap LDIFWriter for extended utility (such as
+sorting of output and tree-like management of nested dn's).
+"""
+
 class AlreadyCommittedException(Exception):
     """
     Thrown when an attempt is made to write to a SortedLdifWriter that
@@ -41,6 +46,7 @@ class SortedLdifWriter(object):
         # don't commit if there has been an exception.
         if value is None:
             self.commit()
+        return False
 
     def unparse(self, dn, attrs):
         """
@@ -68,3 +74,68 @@ class SortedLdifWriter(object):
         for (dn, attrs) in self.buffer:
             self.ldif_writer.unparse(dn, attrs)
         self.committed = True
+
+
+def build_dn(dn, ldif_writer):
+    """
+    Return a BuildDnLdifWriter created from dn.
+
+    Nicer syntax only.
+    """
+    return BuildDnLdifWriter(dn, ldif_writer)
+
+
+class BuildDnLdifWriter(object):
+    """
+    Helps maintain a nested DN hierarchy, appending to dns passed in
+    to unparse calls and relaying to an underlying ldif writer.
+
+    e.g.
+
+    >>> sio = StringIO()
+    >>> ldif_writer = LDIFWriter(sio)
+    >>> with BuildDnLdifWriter('dc=test', ldif_writer) as test_ldif:
+    ...     test_ldif.unparse(dn='cn=hi', dict(foo='bar'))
+    ...     with BuildDnLdifWriter('dc=more', test_ldif) as more_ldif:
+    ...         more_ldif.unparse(dn='cn=morehi', dict(baz='bam'))
+    ...
+    >>> sio.getvalue()
+    dn: cn=hi,dc=test
+    foo: bar
+
+    dn: cn=morehi,dc=more,dc=test
+    baz: bam
+
+    Or, for a nicer syntax, the following would be equivalent:
+
+    >>> sio = StringIO()
+    >>> ldif_writer = LDIFWriter(sio)
+    >>> with build_dn('dc=test', ldif_writer) as test_ldif:
+    ...     test_ldif.unparse(dn='cn=hi', dict(foo='bar'))
+    ...     with test_ldif.extend_dn('dc=more') as more_ldif:
+    ...         more_ldif.unparse(dn='cn=morehi', dict(baz='bam'))
+    """
+
+    def __init__(self, dn, ldif_writer):
+        self.dn = dn
+        self.ldif_writer = ldif_writer
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, ttype, value, traceback):
+        return False
+
+    def unparse(self, dn, attrs):
+        """
+        Delegate to the wrapped ldif_writer's unparse, appending to
+        the dn first.
+        """
+        self.ldif_writer.unparse(','.join([dn, self.dn]), attrs)
+
+    def extend(self, dn):
+        """
+        Return a new BuildDnLdifWriter that builds on self, further appending to
+        self's dn.
+        """
+        return BuildDnLdifWriter(dn, self)

@@ -1,6 +1,7 @@
 from nose.tools import ok_, eq_, raises
 
-from stringsync.ldif_writers import SortedLdifWriter, AlreadyCommittedException
+from stringsync.ldif_writers import SortedLdifWriter, AlreadyCommittedException, \
+    BuildDnLdifWriter
 
 
 class MockLdifWriter(object):
@@ -70,7 +71,46 @@ def test_with_no_commits_on_exception():
     ok_(caught_ex)
 
 
+def test_build_dn_appends_dn():
+    mock_ldif_writer = MockLdifWriter()
+    eq_([], mock_ldif_writer.called_with)
+    dn_ldif = BuildDnLdifWriter('dc=yup', mock_ldif_writer)
+    eq_([], mock_ldif_writer.called_with)
+    dn_ldif.unparse('cn=test', dict(foo='bar'))
+    eq_([('cn=test,dc=yup', dict(foo='bar'))],
+         mock_ldif_writer.called_with)
 
 
+def test_build_dn_can_nest():
+    mock_ldif_writer = MockLdifWriter()
+    eq_([], mock_ldif_writer.called_with)
+    dn_ldif = BuildDnLdifWriter('dc=yup', mock_ldif_writer)
+    eq_([], mock_ldif_writer.called_with)
+    dn2_ldif = BuildDnLdifWriter('dc=more', dn_ldif)
+    eq_([], mock_ldif_writer.called_with)
+    dn2_ldif.unparse('cn=test', dict(foo='bar'))
+    eq_([('cn=test,dc=more,dc=yup', dict(foo='bar'))],
+         mock_ldif_writer.called_with)
 
 
+def test_extend_nests():
+    mock_ldif_writer = MockLdifWriter()
+    eq_([], mock_ldif_writer.called_with)
+    dn_ldif = BuildDnLdifWriter('dc=yup', mock_ldif_writer)
+    eq_([], mock_ldif_writer.called_with)
+    dn2_ldif = dn_ldif.extend('dc=more')
+    eq_([], mock_ldif_writer.called_with)
+    dn2_ldif.unparse('cn=test', dict(foo='bar'))
+    eq_([('cn=test,dc=more,dc=yup', dict(foo='bar'))],
+         mock_ldif_writer.called_with)
+
+
+def test_dn_nests_using_with():
+    mock_ldif_writer = MockLdifWriter()
+    with BuildDnLdifWriter('dc=yup', mock_ldif_writer) as ldif_dn:
+        ldif_dn.unparse('cn=test', dict(foo='bar'))
+        with ldif_dn.extend('dc=more') as more_ldif:
+            more_ldif.unparse('cn=test2', dict(boo='baz'))
+    eq_([('cn=test,dc=yup', dict(foo='bar')),
+         ('cn=test2,dc=more,dc=yup', dict(boo='baz'))],
+        mock_ldif_writer.called_with)
