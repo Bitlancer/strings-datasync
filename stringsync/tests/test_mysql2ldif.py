@@ -8,7 +8,7 @@ from nose.tools import ok_, eq_, raises
 from stringsync import db
 from stringsync.mysql2ldif import organization_dn, NoLdapDomain, \
     AmbiguousLdapDomain, organization_name, dump_organization, \
-    dump_people_ou, dump_people_groups_ou
+    dump_people_ou, dump_people_groups_ou, dump_people_groups
 from stringsync import fixtures as f
 from stringsync.ldif_writers import BuildDnLdifWriter, build_dn
 
@@ -114,6 +114,54 @@ class TestMysql2Ldif(object):
 
                """), ldif.ldif())
 
+    def test_dump_people_groups(self):
+        org_1 = f.f_organization_1(self.conn)
+        team_1 = f.f_team_1(self.conn)
+        team_2 = f.f_team_2(self.conn)
+        memberless_team = f.f_memberless_team(self.conn)
+        disabled_team = f.f_disabled_team(self.conn)
+        only_disabled_members_team = f.f_disabled_members_team(self.conn)
+        user_1 = f.f_user_1(self.conn)
+        user_2 = f.f_user_2(self.conn)
+        disabled_user = f.f_disabled_user(self.conn)
+        member_team_1_user_1 = f.f_membership_u1_t1(self.conn)
+        member_disabled_team_user_1 = f.f_membership_u1_dt(self.conn)
+        member_team_1_user_2 = f.f_membership_u2_t1(self.conn)
+        member_team_2_user_1 = f.f_membership_u1_t2(self.conn)
+        member_team_2_disabled_user = f.f_membership_du_t2(self.conn)
+        member_team_2_user_1 = f.f_membership_u1_t2(self.conn)
+        member_disabled_user_tod = f.f_membership_du_tod(self.conn)
+
+        ldif = StrLdif()
+        # just to make sure that we're wrapping, as that's what will
+        # happen
+        groups_ldif = build_dn('ou=groups,ou=people,dc=org-one-infra,dc=net',
+                               ldif)
+        # leaves, shouldn't return anything
+        eq_(None,
+            dump_people_groups(
+                organization_id=org_1,
+                member_dn='ou=users,ou=people,dc=org-one-infra,dc=net',
+                db=self.conn,
+                ldif_writer=groups_ldif))
+        eq_(dd("""\
+               dn: cn=team_one,ou=groups,ou=people,dc=org-one-infra,dc=net
+               cn: team_one
+               member: uid=user_one,ou=users,ou=people,dc=org-one-infra,dc=net
+               member: uid=user_two,ou=users,ou=people,dc=org-one-infra,dc=net
+               objectClass: top
+               objectClass: groupOfNames
+               structuralObjectClass: groupOfNames
+
+               dn: cn=team_two,ou=groups,ou=people,dc=org-one-infra,dc=net
+               cn: team_two
+               member: uid=user_one,ou=users,ou=people,dc=org-one-infra,dc=net
+               objectClass: top
+               objectClass: groupOfNames
+               structuralObjectClass: groupOfNames
+
+               """),
+            ldif.ldif())
 
 
 def _check_dn_ldif_writer(ldif, dn):

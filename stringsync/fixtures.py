@@ -1,6 +1,17 @@
+import hashlib
+
+
+def _sha1(s):
+    sha1 = hashlib.sha1()
+    sha1.update(s)
+    return sha1.hexdigest()
+
+
 TABLES = [
     'organization',
-    'config'
+    'config',
+    'team',
+    'user_team'
 ]
 
 fixt_results = {}
@@ -68,6 +79,109 @@ def f_ldap_domain_config_2(conn):
                     var='ldap.domain',
                     val='org-one-infra-2.net')
 
+def f_team_1(conn):
+    return f_team(conn,
+                  organization_id=f_organization_1(conn),
+                  name='team_one')
+
+
+def f_team_2(conn):
+    return f_team(conn,
+                  organization_id=f_organization_1(conn),
+                  name='team_two')
+
+
+def f_disabled_members_team(conn):
+    return f_team(conn,
+                  organization_id=f_organization_1(conn),
+                  name='team_disabled_members')
+
+
+def f_memberless_team(conn):
+    return f_team(conn,
+                  organization_id=f_organization_1(conn),
+                  name='team_memberless')
+
+
+def f_disabled_team(conn):
+    return f_team(conn,
+                  organization_id=f_organization_1(conn),
+                  name='disabled_team_one',
+                  is_disabled=True)
+
+
+def f_user_1(conn):
+    return f_user(conn,
+                  organization_id=f_organization_1(conn),
+                  name="user_one",
+                  password="password one",
+                  first_name="John Random",
+                  last_name="User",
+                  email="jrandom@example.com")
+
+
+def f_user_2(conn):
+    return f_user(conn,
+                  organization_id=f_organization_1(conn),
+                  name="user_two",
+                  password="password two",
+                  first_name="Jane Random",
+                  last_name="Userette",
+                  email="jane.random@example.com")
+
+
+def f_disabled_user(conn):
+    return f_user(conn,
+                  organization_id=f_organization_1(conn),
+                  name="disabled_user_one",
+                  password="password disabled",
+                  first_name="Dis",
+                  last_name="Abled",
+                  email="disabled@example.com",
+                  is_disabled=True)
+
+
+def f_membership_u1_t1(conn):
+    return f_membership(conn,
+                        organization_id=f_organization_1(conn),
+                        user_id=f_user_1(conn),
+                        team_id=f_team_1(conn))
+
+
+def f_membership_u2_t1(conn):
+    return f_membership(conn,
+                        organization_id=f_organization_1(conn),
+                        user_id=f_user_2(conn),
+                        team_id=f_team_1(conn))
+
+
+def f_membership_u1_t2(conn):
+    return f_membership(conn,
+                        organization_id=f_organization_1(conn),
+                        user_id=f_user_1(conn),
+                        team_id=f_team_2(conn))
+
+
+def f_membership_du_t2(conn):
+    return f_membership(conn,
+                        organization_id=f_organization_1(conn),
+                        user_id=f_disabled_user(conn),
+                        team_id=f_team_2(conn))
+
+
+def f_membership_du_tod(conn):
+    return f_membership(conn,
+                        organization_id=f_organization_1(conn),
+                        user_id=f_disabled_user(conn),
+                        team_id=f_disabled_members_team(conn))
+
+
+def f_membership_u1_dt(conn):
+    return f_membership(conn,
+                        organization_id=f_organization_1(conn),
+                        user_id=f_user_1(conn),
+                        team_id=f_disabled_team(conn))
+
 
 @fixture
 def f_organization(conn, name=None, short_name=None, is_disabled=False):
@@ -85,6 +199,47 @@ def f_config(conn, organization_id, var, val):
                  VALUES
                (%s, %s, %s)"""
     return _insert_and_get_id(conn, sql, (organization_id, var, val))
+
+
+@fixture
+def f_team(conn, organization_id, name, is_disabled=False):
+    sql = """INSERT INTO team
+               (organization_id, name, is_disabled)
+                 VALUES
+               (%s, %s, %s)"""
+    return _insert_and_get_id(conn, sql, (organization_id, name, is_disabled))
+
+
+@fixture
+def f_user(conn, organization_id, name, password,
+           first_name, last_name, email, is_admin=False,
+           can_create_user=False, is_disabled=False):
+    sql = """INSERT INTO user
+               (organization_id, name, password,
+                first_name, last_name, email,
+                is_admin, can_create_user, is_disabled)
+                 VALUES
+               (%(organization_id)s, %(name)s, %(password)s,
+                %(first_name)s, %(last_name)s, %(email)s,
+                %(is_admin)s, %(can_create_user)s, %(is_disabled)s)"""
+    return _insert_and_get_id(conn, sql,
+                              dict(organization_id=organization_id,
+                                   name=name,
+                                   password=_sha1(password),
+                                   first_name=first_name,
+                                   last_name=last_name,
+                                   email=email,
+                                   is_admin=is_admin,
+                                   can_create_user=can_create_user,
+                                   is_disabled=is_disabled))
+
+@fixture
+def f_membership(conn, organization_id, user_id, team_id):
+    sql = """INSERT INTO user_team
+               (organization_id, user_id, team_id)
+                 VALUES
+               (%s, %s, %s)"""
+    return _insert_and_get_id(conn, sql, (organization_id, user_id, team_id))
 
 
 def _insert_and_get_id(conn, sql, args):
