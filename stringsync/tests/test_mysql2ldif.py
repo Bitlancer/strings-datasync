@@ -7,9 +7,10 @@ from nose.tools import ok_, eq_, raises
 
 from stringsync import db
 from stringsync.mysql2ldif import organization_dn, NoDnsDomain, \
-    AmbiguousDnsDomain, organization_name, dump_organization
+    AmbiguousDnsDomain, organization_name, dump_organization, \
+    dump_people_ou
 from stringsync import fixtures as f
-from stringsync.ldif_writers import BuildDnLdifWriter
+from stringsync.ldif_writers import BuildDnLdifWriter, build_dn
 
 
 class StrLdif(object):
@@ -80,6 +81,22 @@ class TestMysql2Ldif(object):
                structuralObjectClass: organization
 
                """), ldif.ldif())
+
+    def test_dump_people_ou(self):
+        ldif = StrLdif()
+        # just to make sure that we're wrapping, as that's what will
+        # happen
+        org_ldif = build_dn('dc=org-one-infra,dc=net', ldif)
+        # make sure we return a modified ldif writer for further use
+        new_ldif = dump_people_ou(self.conn, org_ldif)
+        _check_dn_ldif_writer(new_ldif, 'ou=people')
+        eq_(dd("""\
+               dn: ou=people,dc=org-one-infra,dc=net
+               objectClass: organizationalUnit
+               structuralObjectClass: organizationalUnit
+
+               """), ldif.ldif())
+
 
 def _check_dn_ldif_writer(ldif, dn):
     ok_(isinstance(ldif, BuildDnLdifWriter))
