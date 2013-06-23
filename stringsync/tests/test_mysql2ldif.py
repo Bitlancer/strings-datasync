@@ -203,7 +203,7 @@ class TestMysql2Ldif(object):
                sn: User
                structuralObjectClass: inetOrgPerson
                uid: user_one
-               userPassword:: pj8Vl+Tv7TTcVdg1XG3EBhDu6I4=
+               userPassword: {SHA}a63f1597e4efed34dc55d8355c6dc40610eee88e
 
                dn: uid=user_two,ou=users,ou=people,dc=org-one-infra,dc=net
                cn: Jane Random Userette
@@ -211,7 +211,7 @@ class TestMysql2Ldif(object):
                sn: Userette
                structuralObjectClass: inetOrgPerson
                uid: user_two
-               userPassword:: mASyxADXC2by2OfDsEvSbIMyHY4=
+               userPassword: {SHA}9804b2c400d70b66f2d8e7c3b04bd26c83321d8e
 
                """), ldif.ldif())
 

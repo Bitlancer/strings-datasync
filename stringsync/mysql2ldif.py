@@ -126,7 +126,7 @@ def dump_people_users(organization_id, db, ldif_writer):
                                   user['last_name']])],
                     sn=[user['last_name']],
                     uid=[user['name']],
-                    userPassword=[user['password'].decode('hex')]))
+                    userPassword=["{SHA}%s" % user['password']]))
 
 
 def dump_nodes_ou(db, ldif_writer):
