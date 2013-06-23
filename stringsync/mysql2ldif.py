@@ -261,7 +261,7 @@ def dump_posix_users(organization_id, db, ldif_writer):
 
    - (future) they won't have access to any hosts
    """
-   users = _select_active_posix_users(organization_id, db)
+   users = _select_posix_users(organization_id, db)
    _deactivate_disabled_posix_users(users)
    for user in users:
       _dump_posix_user_to_ldif(user, ldif_writer)
@@ -273,11 +273,11 @@ def _deactivate_disabled_posix_users(users):
          user['posix_login_shell'] = '/usr/sbin/nologin'
          user['formatted_password'] = '{MD5}!'
          user['host'] = []
-         user['authorizedService'] = []
-         user['sshPublicKey'] = []
+         user['authorized_service'] = []
+         user['ssh_public_key'] = []
 
 
-def _select_active_posix_users(organization_id, db):
+def _select_posix_users(organization_id, db):
    """
    Get back the user data needed for creation of posix users in a dict
    for each user with the following keys:
@@ -295,6 +295,12 @@ def _select_active_posix_users(organization_id, db):
    - posix_login_shell
 
    - posix_uid_num
+
+   - host
+
+   - authorized_service
+
+   - ssh_public_key
    """
    user_fields = ['id',
                   'name',
@@ -323,13 +329,14 @@ def _select_active_posix_users(organization_id, db):
    for user in users:
       user['posix_uid_num'] = _select_posix_uid_num(db, user['id'])
       user['posix_login_shell'] = _select_posix_login_shell(db, user['id'])
-      user['authorizedService'] = ['*']
+      user['authorized_service'] = ['*']
       user['host'] = _hosts_for_posix_user(user['id'],
                                            organization_id,
                                            db)
-      user['sshPublicKey'] = _public_keys_for_posix_user(user['id'],
-                                                         organization_id,
-                                                         db)
+      user['ssh_public_key'] = _public_keys_for_posix_user(
+         user['id'],
+         organization_id,
+         db)
 
    return users
 
@@ -406,9 +413,9 @@ def _dump_posix_user_to_ldif(user, ldif_writer):
                  homeDirectory=['/home/%s' % user['name']],
                  sn=[user['last_name']],
                  uid=[user['name']],
-                 authorizedService=user['authorizedService'],
+                 authorizedService=user['authorized_service'],
                  host=user['host'],
-                 sshPublicKey=user['sshPublicKey']))
+                 sshPublicKey=user['ssh_public_key']))
 
 
 def _select_posix_login_shell(db, user_id):
