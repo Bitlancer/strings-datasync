@@ -463,6 +463,7 @@ class TestMysql2Ldif(object):
                objectClass: authorizedServiceObject
                objectClass: hostObject
                sn: Abled
+               sshPublicKey: pub key 1 disabled user
                structuralObjectClass: inetOrgPerson
                uid: disabled_user_one
                uidNumber: 2002
@@ -479,6 +480,7 @@ class TestMysql2Ldif(object):
                objectClass: authorizedServiceObject
                objectClass: hostObject
                sn: Shell
+               sshPublicKey: pub key 1 shelless user
                structuralObjectClass: inetOrgPerson
                uid: no_shell_user
                uidNumber: 2003

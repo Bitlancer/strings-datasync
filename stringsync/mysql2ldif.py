@@ -308,7 +308,6 @@ def _deactivate_disabled_posix_users(users):
          user['formatted_password'] = '{MD5}!'
          user['host'] = []
          user['authorized_service'] = []
-         user['ssh_public_key'] = []
 
 
 def _select_posix_users(organization_id, db):
