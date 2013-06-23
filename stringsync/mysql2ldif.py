@@ -213,6 +213,24 @@ def dump_posix_ou(ldif_writer):
    return build_dn('ou=posix', ldif_writer)
 
 
+def dump_posix_groups_ou(ldif_writer):
+   """
+   Dump the ou for posix groups
+
+   For the moment, yes, this is identical to dump_people_groups_ou in
+   function, but I'm keeping them separate in case they diverge, as
+   that would be a nasty bug to track down.
+
+   Return an extended ldif writer for child entries.
+   """
+   ldif_writer.unparse(
+      dn='ou=groups',
+      attrs=dict(ou=['groups'],
+                 structuralObjectClass=['organizationalUnit'],
+                 objectClass=['organizationalUnit']))
+   return build_dn('ou=groups', ldif_writer)
+
+
 def _select_devices(organization_id, db):
    """
    Return a dict of role, external_fqdn for each device in the
