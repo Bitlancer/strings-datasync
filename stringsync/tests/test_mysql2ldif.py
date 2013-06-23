@@ -9,7 +9,7 @@ from stringsync import db
 from stringsync.mysql2ldif import organization_dn, NoLdapDomain, \
     AmbiguousLdapDomain, organization_name, dump_organization, \
     dump_people_ou, dump_people_groups_ou, dump_people_groups, \
-    dump_people_users_ou
+    dump_people_users_ou, dump_people_users
 from stringsync import fixtures as f
 from stringsync.ldif_writers import BuildDnLdifWriter, build_dn
 
@@ -181,6 +181,38 @@ class TestMysql2Ldif(object):
 
                """), ldif.ldif())
 
+    def test_dump_people_users(self):
+        org_1 = f.f_organization_1(self.conn)
+        user_1 = f.f_user_1(self.conn)
+        user_2 = f.f_user_2(self.conn)
+        disabled_user = f.f_disabled_user(self.conn)
+
+        ldif = StrLdif()
+        # just to make sure that we're wrapping, as that's what will
+        # happen
+        users_ldif = build_dn('ou=users,ou=people,dc=org-one-infra,dc=net',
+                              ldif)
+        # make sure we don't return a modified ldif writer
+        eq_(None,
+            dump_people_users(org_1, self.conn, users_ldif))
+        eq_(dd("""\
+               dn: uid=user_one,ou=users,ou=people,dc=org-one-infra,dc=net
+               cn: John Random User
+               objectClass: inetOrgPerson
+               sn: User
+               structuralObjectClass: inetOrgPerson
+               uid: user_one
+               userPassword:: pj8Vl+Tv7TTcVdg1XG3EBhDu6I4=
+
+               dn: uid=user_two,ou=users,ou=people,dc=org-one-infra,dc=net
+               cn: Jane Random Userette
+               objectClass: inetOrgPerson
+               sn: Userette
+               structuralObjectClass: inetOrgPerson
+               uid: user_two
+               userPassword:: mASyxADXC2by2OfDsEvSbIMyHY4=
+
+               """), ldif.ldif())
 
 def _check_dn_ldif_writer(ldif, dn):
     ok_(isinstance(ldif, BuildDnLdifWriter))

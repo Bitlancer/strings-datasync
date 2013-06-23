@@ -110,6 +110,59 @@ def dump_people_users_ou(db, ldif_writer):
    return build_dn('ou=users', ldif_writer)
 
 
+def dump_people_users(organization_id, db, ldif_writer):
+   """
+   Dump the user entries under ou=users,ou=people.
+
+   As these are leave entries, no extended ldif writer is returned.
+   """
+   user_data = _select_active_user_data(organization_id, db)
+   for user in user_data:
+      ldif_writer.unparse(
+         dn="uid=%s" % user['name'],
+         attrs=dict(objectClass=['inetOrgPerson'],
+                    structuralObjectClass=['inetOrgPerson'],
+                    cn=[' '.join([user['first_name'],
+                                  user['last_name']])],
+                    sn=[user['last_name']],
+                    uid=[user['name']],
+                    userPassword=[user['password'].decode('hex')]))
+
+
+def _select_active_user_data(organization_id, db):
+   """
+   Return a list of dicts of active user data for the organization.
+
+   The dict fields are:
+
+   - name
+
+   - first_name
+
+   - password
+
+   - first_name
+
+   - last_name
+   """
+   fields = ['name',
+             'first_name',
+             'password',
+             'first_name',
+             'last_name']
+   select = """
+            SELECT {fields}
+              FROM user
+              WHERE is_disabled IS FALSE
+                      AND
+                    organization_id = %(organization_id)s
+            """.format(fields=', '.join(fields))
+
+   return [dict(zip(fields, row))
+           for row
+           in select_rows(db, select, dict(organization_id=organization_id))]
+
+
 def _format_member(member_name, member_dn):
    return 'uid=%s,%s' % (member_name, member_dn)
 
