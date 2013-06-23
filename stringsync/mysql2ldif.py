@@ -129,6 +129,20 @@ def dump_people_users(organization_id, db, ldif_writer):
                     userPassword=[user['password'].decode('hex')]))
 
 
+def dump_nodes_ou(db, ldif_writer):
+   """
+   Dump the nodes ou.
+
+   Returns an extended ldif_writer to write sub-entries in the tree.
+   """
+   ldif_writer.unparse(
+      dn='ou=nodes',
+      attrs=dict(ou=['nodes'],
+                 objectClass=['organizationalUnit'],
+                 structuralObjectClass=['organizationalUnit']))
+   return build_dn('ou=nodes', ldif_writer)
+
+
 def _select_active_user_data(organization_id, db):
    """
    Return a list of dicts of active user data for the organization.
