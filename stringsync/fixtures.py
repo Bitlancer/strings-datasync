@@ -16,7 +16,8 @@ TABLES = [
     'device',
     'role',
     'formation',
-    'device_attribute'
+    'device_attribute',
+    'user_attribute'
 ]
 
 
@@ -146,6 +147,38 @@ def f_disabled_user(conn):
                   last_name="Abled",
                   email="disabled@example.com",
                   is_disabled=True)
+
+
+def f_user_1_posix_uid(conn):
+    return f_user_attribute(conn,
+                            organization_id=f_organization_1(conn),
+                            user_id=f_user_1(conn),
+                            var='posix.uid',
+                            val=2001)
+
+
+def f_user_1_posix_login_shell(conn):
+    return f_user_attribute(conn,
+                            organization_id=f_organization_1(conn),
+                            user_id=f_user_1(conn),
+                            var='posix.shell',
+                            val='/bin/user_1_shell')
+
+
+def f_disabled_user_posix_uid(conn):
+    return f_user_attribute(conn,
+                            organization_id=f_organization_1(conn),
+                            user_id=f_disabled_user(conn),
+                            var='posix.uid',
+                            val=2002)
+
+
+def f_disabled_user_posix_login_shell(conn):
+    return f_user_attribute(conn,
+                            organization_id=f_organization_1(conn),
+                            user_id=f_disabled_user(conn),
+                            var='posix.shell',
+                            val='/bin/disabled_user_shell_oops')
 
 
 def f_membership_u1_t1(conn):
@@ -383,6 +416,16 @@ def f_device_attribute(conn, organization_id, device_id, var, val):
                (%s, %s, %s, %s)"""
     return _insert_and_get_id(conn, sql,
                               (organization_id, device_id, var, val))
+
+
+@fixture
+def f_user_attribute(conn, organization_id, user_id, var, val):
+    sql = """INSERT INTO user_attribute
+               (organization_id, user_id, var, val)
+                 VALUES
+               (%s, %s, %s, %s)"""
+    return _insert_and_get_id(conn, sql,
+                              (organization_id, user_id, var, val))
 
 
 def _insert_and_get_id(conn, sql, args):

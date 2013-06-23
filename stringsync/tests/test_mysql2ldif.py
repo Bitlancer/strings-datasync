@@ -11,7 +11,7 @@ from stringsync.mysql2ldif import organization_dn, NoLdapDomain, \
     dump_people_ou, dump_people_groups_ou, dump_people_groups, \
     dump_people_users_ou, dump_people_users, dump_nodes_ou, \
     dump_data_centers, dump_devices, dump_posix_ou, dump_posix_groups_ou, \
-    dump_posix_users_ou
+    dump_posix_users_ou, dump_posix_users
 from stringsync import fixtures as f
 from stringsync.ldif_writers import BuildDnLdifWriter, build_dn
 
@@ -356,6 +356,59 @@ class TestMysql2Ldif(object):
                structuralObjectClass: organizationalUnit
 
                """), ldif.ldif())
+
+    def test_dump_posix_users(self):
+        org_1 = f.f_organization_1(self.conn)
+        user_1 = f.f_user_1(self.conn)
+        shell_1 = f.f_user_1_posix_login_shell(self.conn)
+        uid_1 = f.f_user_1_posix_uid(self.conn)
+        disabled_user = f.f_disabled_user(self.conn)
+        shell_disabled = f.f_disabled_user_posix_login_shell(self.conn)
+        uid_disabled = f.f_disabled_user_posix_uid(self.conn)
+
+        ldif = StrLdif()
+        # just to make sure that we're wrapping, as that's what will
+        # happen
+        users_ldif = build_dn('ou=users,ou=posix,dc=org-one-infra,dc=net',
+                              ldif)
+        # make sure no extended ldif is returned
+        eq_(None,
+            dump_posix_users(org_1, self.conn, users_ldif))
+        eq_(dd("""\
+               dn: uid=user_one,ou=users,ou=posix,dc=org-one-infra,dc=net
+               cn: John Random User
+               gidNumber: 2001
+               givenName: John Random
+               homeDirectory: /home/user_one
+               loginShell: /bin/user_1_shell
+               objectClass: inetOrgPerson
+               objectClass: posixAccount
+               objectClass: authorizedServiceObject
+               objectClass: hostObject
+               sn: User
+               structuralObjectClass: inetOrgPerson
+               uid: user_one
+               uidNumber: 2001
+               userPassword: {SHA}a63f1597e4efed34dc55d8355c6dc40610eee88e
+
+               dn: uid=disabled_user_one,ou=users,ou=posix,dc=org-one-infra,dc=net
+               cn: Dis Abled
+               gidNumber: 2002
+               givenName: Dis
+               homeDirectory: /home/disabled_user_one
+               loginShell: /usr/sbin/nologin
+               objectClass: inetOrgPerson
+               objectClass: posixAccount
+               objectClass: authorizedServiceObject
+               objectClass: hostObject
+               sn: Abled
+               structuralObjectClass: inetOrgPerson
+               uid: disabled_user_one
+               uidNumber: 2002
+               userPassword: {MD5}!
+
+               """),
+            ldif.ldif())
 
 
 def _check_dn_ldif_writer(ldif, dn):

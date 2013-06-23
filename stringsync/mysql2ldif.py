@@ -2,7 +2,7 @@
 Dump the strings mysql data for a given organization to a full ldif.
 """
 
-from stringsync.db import select_row, select_rows
+from stringsync.db import select_row, select_rows, select_val
 from stringsync.ldif_writers import build_dn, full_dn
 
 
@@ -247,6 +247,136 @@ def dump_posix_users_ou(ldif_writer):
                  structuralObjectClass=['organizationalUnit'],
                  objectClass=['organizationalUnit']))
    return build_dn('ou=users', ldif_writer)
+
+
+def dump_posix_users(organization_id, db, ldif_writer):
+   """
+   Dump posix users to ldif, including service and host permissions.
+
+   Disabled users will still be written, but:
+
+   - their login shell will be set to nologin
+
+   - their password will be set to {MD5}!
+
+   - (future) they won't have access to any hosts
+   """
+   users = _select_active_posix_users(organization_id, db)
+   _deactivate_disabled_posix_users(users)
+   for user in users:
+      _dump_posix_user_to_ldif(user, ldif_writer)
+
+
+def _deactivate_disabled_posix_users(users):
+   for user in users:
+      if user['is_disabled']:
+         user['posix_login_shell'] = '/usr/sbin/nologin'
+         user['formatted_password'] = '{MD5}!'
+
+
+def _select_active_posix_users(organization_id, db):
+   """
+   Get back the user data needed for creation of posix users in a dict
+   for each user with the following keys:
+
+   - name
+
+   - first_name
+
+   - last_name
+
+   - formatted_password
+
+   - is_disabled
+
+   - posix_login_shell
+
+   - posix_uid_num
+   """
+   user_fields = ['id',
+                  'name',
+                  'first_name',
+                  'last_name',
+                  'password',
+                  'is_disabled']
+
+   s_user = """
+            SELECT {user_fields}
+              FROM user
+              WHERE organization_id = %(organization_id)s
+            """.format(user_fields=', '.join(user_fields))
+
+   users = [dict(zip(user_fields, row))
+            for row
+            in select_rows(db,
+                           s_user,
+                           dict(organization_id=organization_id))]
+
+   for user in users:
+      user['formatted_password'] = "{SHA}%s" % user['password']
+      # just make it a little harder to screw this up downstram
+      del user['password']
+
+   for user in users:
+      user['posix_uid_num'] = _select_posix_uid_num(db, user['id'])
+      user['posix_login_shell'] = _select_posix_login_shell(db, user['id'])
+
+   return users
+
+
+def _dump_posix_user_to_ldif(user, ldif_writer):
+   print repr(user)
+   ldif_writer.unparse(
+      dn="uid=%s" % user['name'],
+      attrs=dict(objectClass=['inetOrgPerson',
+                              'posixAccount',
+                              'authorizedServiceObject',
+                              'hostObject'],
+                 structuralObjectClass=['inetOrgPerson'],
+                 uidNumber=[user['posix_uid_num']],
+                 gidNumber=[user['posix_uid_num']],
+                 loginShell=[user['posix_login_shell']],
+                 userPassword=[user['formatted_password']],
+                 cn=[" ".join([user['first_name'],
+                               user['last_name']])],
+                 givenName=[user['first_name']],
+                 homeDirectory=['/home/%s' % user['name']],
+                 sn=[user['last_name']],
+                 uid=[user['name']]))
+
+
+def _select_posix_login_shell(db, user_id):
+   """
+   Returns None if not found, will be handled later.
+
+   Multiple values will cause a kersplosion in the form of an
+   exception.
+   """
+   sql = """
+         SELECT val
+           FROM user_attribute
+           WHERE var = 'posix.shell'
+                   AND
+                 user_id = %(user_id)s
+         """
+   return select_val(db, sql, dict(user_id=user_id))
+
+
+def _select_posix_uid_num(db, user_id):
+   """
+   Returns None if not found, will be handled later.
+
+   Multiple values will cause a kersplosion in the form of an
+   exception.
+   """
+   sql = """
+         SELECT val
+           FROM user_attribute
+           WHERE var = 'posix.uid'
+                   AND
+                 user_id = %(user_id)s
+         """
+   return select_val(db, sql, dict(user_id=user_id))
 
 
 def _select_devices(organization_id, db):
