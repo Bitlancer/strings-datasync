@@ -397,31 +397,65 @@ def _hosts_for_posix_user(user_id, organization_id, db):
    removed later for a disabled user, but we do care very much if the
    teams are disabled.
    """
-   select = """
-            SELECT da.val
-              FROM user u INNER JOIN user_team ut
-                     ON u.id = ut.user_id
-                   INNER JOIN team t
-                     ON ut.team_id = t.id
-                   INNER JOIN team_formation tf
-                     ON tf.team_id = t.id
-                   INNER JOIN device d
-                     ON tf.formation_id = d.formation_id
-                   INNER JOIN device_attribute da
-                     ON da.device_id = d.id
-             WHERE t.is_disabled IS FALSE
-                     AND
-                   t.organization_id = %(organization_id)s
-                     AND
-                   u.id = %(user_id)s
-                     AND
-                   da.var = 'dns.external.fqdn'
-            """
-   hosts = [r[0]
-            for r
-            in select_rows(db,
-                           select, dict(organization_id=organization_id,
-                                        user_id=user_id))]
+   # access to a host can be granted through:
+   #
+   # team access to a device
+   #
+   # team access to a formation (which carries to devices)
+   #
+   # team access to an application (which carries to formations, which
+   # carries to devices)
+
+   selects = ["""
+              SELECT da.val
+                FROM user u INNER JOIN user_team ut
+                       ON u.id = ut.user_id
+                     INNER JOIN team t
+                       ON ut.team_id = t.id
+                     INNER JOIN team_formation tf
+                       ON tf.team_id = t.id
+                     INNER JOIN device d
+                       ON tf.formation_id = d.formation_id
+                     INNER JOIN device_attribute da
+                       ON da.device_id = d.id
+               WHERE t.is_disabled IS FALSE
+                       AND
+                     t.organization_id = %(organization_id)s
+                       AND
+                     u.id = %(user_id)s
+                       AND
+                     da.var = 'dns.external.fqdn'
+              """,
+              """
+              SELECT da.val
+                FROM user u INNER JOIN user_team ut
+                       ON u.id = ut.user_id
+                     INNER JOIN team t
+                       ON ut.team_id = t.id
+                     INNER JOIN team_application ta
+                       ON ta.team_id = t.id
+                     INNER JOIN application_formation af
+                       ON af.application_id = ta.application_id
+                     INNER JOIN device d
+                       ON af.formation_id = d.formation_id
+                     INNER JOIN device_attribute da
+                       ON da.device_id = d.id
+               WHERE t.is_disabled IS FALSE
+                       AND
+                     t.organization_id = %(organization_id)s
+                       AND
+                     u.id = %(user_id)s
+                       AND
+                     da.var = 'dns.external.fqdn'
+              """]
+   hosts = []
+   for select in selects:
+      hosts.extend([r[0]
+                    for r
+                    in select_rows(db,
+                                   select,
+                                   dict(organization_id=organization_id,
+                                        user_id=user_id))])
 
    hosts = list(set(hosts))
    # make it easier to test these

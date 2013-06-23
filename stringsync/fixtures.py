@@ -19,7 +19,10 @@ TABLES = [
     'device_attribute',
     'user_attribute',
     'team_formation',
-    'user_key'
+    'user_key',
+    'application',
+    'team_application',
+    'application_formation'
 ]
 
 
@@ -307,6 +310,54 @@ def f_formation_2(conn):
                        name="formation_two")
 
 
+def f_formation_3(conn):
+    return f_formation(conn,
+                       organization_id=f_organization_1(conn),
+                       name="formation_three")
+
+
+def f_application_1(conn):
+    return f_application(conn,
+                       organization_id=f_organization_1(conn),
+                       name="application_one")
+
+
+def f_application_1_formation_3(conn):
+    return f_application_formation(
+        conn,
+        organization_id=f_organization_1(conn),
+        application_id=f_application_1(conn),
+        formation_id=f_formation_3(conn))
+
+
+def f_team_1_application_1(conn):
+    return f_team_application(conn,
+                              organization_id=f_organization_1(conn),
+                              application_id=f_application_1(conn),
+                              team_id=f_team_1(conn))
+
+
+def f_disabled_team_application_2(conn):
+    return f_team_application(conn,
+                              organization_id=f_organization_1(conn),
+                              application_id=f_application_2(conn),
+                              team_id=f_disabled_team(conn))
+
+
+def f_application_2(conn):
+    return f_application(conn,
+                       organization_id=f_organization_1(conn),
+                       name="application_two")
+
+
+def f_application_2_formation_2(conn):
+    return f_application_formation(
+        conn,
+        organization_id=f_organization_1(conn),
+        application_id=f_application_2(conn),
+        formation_id=f_formation_2(conn))
+
+
 def f_role_2(conn):
     return f_role(conn,
                   organization_id=f_organization_1(conn),
@@ -319,6 +370,23 @@ def f_device_2(conn):
                     name="device_two",
                     role_id=f_role_2(conn),
                     formation_id=f_formation_2(conn))
+
+
+def f_device_5(conn):
+    return f_device(conn,
+                    organization_id=f_organization_1(conn),
+                    name="device_five",
+                    role_id=f_role_2(conn),
+                    formation_id=f_formation_3(conn))
+
+
+def f_device_5_ex_fqdn(conn):
+    return f_device_attribute(
+        conn,
+        organization_id=f_organization_1(conn),
+        device_id=f_device_5(conn),
+        var='dns.external.fqdn',
+        val='device_five.data_center_two.org-one-infra.net')
 
 
 def f_device_2_ex_fqdn(conn):
@@ -553,6 +621,48 @@ def f_user_key(conn, organization_id, user_id, name, public_key):
                                    user_id=user_id,
                                    name=name,
                                    public_key=public_key))
+
+
+@fixture
+def f_application(conn, organization_id, name):
+    sql = """
+          INSERT INTO application
+            (organization_id, name)
+              VALUES
+            (%(organization_id)s, %(name)s)
+          """
+    return _insert_and_get_id(conn, sql,
+                              dict(organization_id=organization_id,
+                                   name=name))
+
+
+@fixture
+def f_team_application(conn, organization_id, team_id, application_id):
+    sql = """
+          INSERT INTO team_application
+            (organization_id, team_id, application_id)
+          VALUES
+            (%(organization_id)s, %(team_id)s, %(application_id)s)
+          """
+    return _insert_and_get_id(conn, sql,
+                              dict(organization_id=organization_id,
+                                   team_id=team_id,
+                                   application_id=application_id))
+
+
+@fixture
+def f_application_formation(conn, organization_id,
+                            application_id, formation_id):
+    sql = """
+          INSERT INTO application_formation
+            (organization_id, application_id, formation_id)
+          VALUES
+            (%(organization_id)s, %(application_id)s, %(formation_id)s)
+          """
+    return _insert_and_get_id(conn, sql,
+                              dict(organization_id=organization_id,
+                                   application_id=application_id,
+                                   formation_id=formation_id))
 
 
 def _insert_and_get_id(conn, sql, args):

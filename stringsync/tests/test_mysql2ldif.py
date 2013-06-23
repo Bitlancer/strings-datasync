@@ -371,17 +371,28 @@ class TestMysql2Ldif(object):
         t_d_u_1 = f.f_membership_u1_dt(self.conn)
         t_d_f_2 = f.f_disabled_team_formation_2(self.conn)
 
+        a_1 = f.f_application_1(self.conn)
+        a_1_f_3 = f.f_application_1_formation_3(self.conn)
+        t_1_a_1 = f.f_team_1_application_1(self.conn)
+
+        a_2 = f.f_application_2(self.conn)
+        a_2_f_2 = f.f_application_2_formation_2(self.conn)
+        dt_a2 = f.f_disabled_team_application_2(self.conn)
+
         # we include disabled team, and connect it to formation 2,
         # which contains device 2, to make sure that a disabled team
         # does not convey rights to a user
         f_1 = f.f_formation_1(self.conn)
         f_2 = f.f_formation_2(self.conn)
+        f_3 = f.f_formation_3(self.conn)
         d_1 = f.f_device_1(self.conn)
         d_2 = f.f_device_2(self.conn)
         fqdn_1 = f.f_device_1_ex_fqdn(self.conn)
         d_4 = f.f_device_4(self.conn)
         fqdn_4 = f.f_device_4_ex_fqdn(self.conn)
         fqdn_2 = f.f_device_2_ex_fqdn(self.conn)
+        d_5 = f.f_device_5(self.conn)
+        fqdn_5 = f.f_device_5_ex_fqdn(self.conn)
 
         disabled_user = f.f_disabled_user(self.conn)
         shell_disabled = f.f_disabled_user_posix_login_shell(self.conn)
@@ -413,6 +424,7 @@ class TestMysql2Ldif(object):
                gidNumber: 2001
                givenName: John Random
                homeDirectory: /home/user_one
+               host: device_five.data_center_two.org-one-infra.net
                host: device_four.data_center_two.org-one-infra.net
                host: device_one.data_center_one.org-one-infra.net
                loginShell: /bin/user_1_shell
