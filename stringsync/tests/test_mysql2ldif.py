@@ -359,12 +359,35 @@ class TestMysql2Ldif(object):
 
     def test_dump_posix_users(self):
         org_1 = f.f_organization_1(self.conn)
+
         user_1 = f.f_user_1(self.conn)
         shell_1 = f.f_user_1_posix_login_shell(self.conn)
         uid_1 = f.f_user_1_posix_uid(self.conn)
+        t_1 = f.f_team_1(self.conn)
+        u_t_1 = f.f_membership_u1_t1(self.conn)
+        t_1_f_1 = f.f_team_1_formation_1(self.conn)
+        t_d_u_1 = f.f_membership_u1_dt(self.conn)
+        t_d_f_2 = f.f_disabled_team_formation_2(self.conn)
+
+        # we include disabled team, and connect it to formation 2,
+        # which contains device 2, to make sure that a disabled team
+        # does not convey rights to a user
+        f_1 = f.f_formation_1(self.conn)
+        f_2 = f.f_formation_2(self.conn)
+        d_1 = f.f_device_1(self.conn)
+        d_2 = f.f_device_2(self.conn)
+        fqdn_1 = f.f_device_1_ex_fqdn(self.conn)
+        d_4 = f.f_device_4(self.conn)
+        fqdn_4 = f.f_device_4_ex_fqdn(self.conn)
+        fqdn_2 = f.f_device_2_ex_fqdn(self.conn)
+
         disabled_user = f.f_disabled_user(self.conn)
         shell_disabled = f.f_disabled_user_posix_login_shell(self.conn)
         uid_disabled = f.f_disabled_user_posix_uid(self.conn)
+
+        # a user with no shell should be treated as a disabled user
+        shelless_user = f.f_shelless_user(self.conn)
+        uid_shelless = f.f_shelless_user_posix_uid(self.conn)
 
         ldif = StrLdif()
         # just to make sure that we're wrapping, as that's what will
@@ -374,12 +397,16 @@ class TestMysql2Ldif(object):
         # make sure no extended ldif is returned
         eq_(None,
             dump_posix_users(org_1, self.conn, users_ldif))
+
         eq_(dd("""\
                dn: uid=user_one,ou=users,ou=posix,dc=org-one-infra,dc=net
+               authorizedService: *
                cn: John Random User
                gidNumber: 2001
                givenName: John Random
                homeDirectory: /home/user_one
+               host: device_four.data_center_two.org-one-infra.net
+               host: device_one.data_center_one.org-one-infra.net
                loginShell: /bin/user_1_shell
                objectClass: inetOrgPerson
                objectClass: posixAccount
@@ -405,6 +432,22 @@ class TestMysql2Ldif(object):
                structuralObjectClass: inetOrgPerson
                uid: disabled_user_one
                uidNumber: 2002
+               userPassword: {MD5}!
+
+               dn: uid=no_shell_user,ou=users,ou=posix,dc=org-one-infra,dc=net
+               cn: No Shell
+               gidNumber: 2003
+               givenName: No
+               homeDirectory: /home/no_shell_user
+               loginShell: /usr/sbin/nologin
+               objectClass: inetOrgPerson
+               objectClass: posixAccount
+               objectClass: authorizedServiceObject
+               objectClass: hostObject
+               sn: Shell
+               structuralObjectClass: inetOrgPerson
+               uid: no_shell_user
+               uidNumber: 2003
                userPassword: {MD5}!
 
                """),

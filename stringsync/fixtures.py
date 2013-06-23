@@ -17,7 +17,8 @@ TABLES = [
     'role',
     'formation',
     'device_attribute',
-    'user_attribute'
+    'user_attribute',
+    'team_formation'
 ]
 
 
@@ -128,6 +129,23 @@ def f_user_1(conn):
                   email="jrandom@example.com")
 
 
+def f_shelless_user(conn):
+    return f_user(conn,
+                  organization_id=f_organization_1(conn),
+                  name="no_shell_user",
+                  password="password noshell",
+                  first_name="No",
+                  last_name="Shell",
+                  email="noshell@example.com")
+
+
+def f_disabled_team_formation_2(conn):
+    return f_team_formation(conn,
+                            organization_id=f_organization_1(conn),
+                            team_id=f_disabled_team(conn),
+                            formation_id=f_formation_2(conn))
+
+
 def f_user_2(conn):
     return f_user(conn,
                   organization_id=f_organization_1(conn),
@@ -171,6 +189,15 @@ def f_disabled_user_posix_uid(conn):
                             user_id=f_disabled_user(conn),
                             var='posix.uid',
                             val=2002)
+
+
+def f_shelless_user_posix_uid(conn):
+    return f_user_attribute(conn,
+                            organization_id=f_organization_1(conn),
+                            user_id=f_shelless_user(conn),
+                            var='posix.uid',
+                            val=2003)
+
 
 
 def f_disabled_user_posix_login_shell(conn):
@@ -227,6 +254,13 @@ def f_formation_1(conn):
     return f_formation(conn,
                        organization_id=f_organization_1(conn),
                        name="formation_one")
+
+
+def f_team_1_formation_1(conn):
+    return f_team_formation(conn,
+                            organization_id=f_organization_1(conn),
+                            team_id=f_team_1(conn),
+                            formation_id=f_formation_1(conn))
 
 
 def f_role_1(conn):
@@ -296,6 +330,24 @@ def f_device_3_ex_fqdn(conn):
         device_id=f_device_3(conn),
         var='dns.external.fqdn',
         val='device_three.data_center_two.org-one-infra.net')
+
+
+def f_device_4(conn):
+    return f_device(conn,
+                    organization_id=f_organization_1(conn),
+                    name="device_four",
+                    role_id=f_role_1(conn),
+                    formation_id=f_formation_1(conn))
+
+
+def f_device_4_ex_fqdn(conn):
+    return f_device_attribute(
+        conn,
+        organization_id=f_organization_1(conn),
+        device_id=f_device_4(conn),
+        var='dns.external.fqdn',
+        val='device_four.data_center_two.org-one-infra.net')
+
 
 
 @fixture
@@ -406,6 +458,20 @@ def f_formation(conn, organization_id, name):
     return _insert_and_get_id(conn, sql,
                               dict(organization_id=organization_id,
                                    name=name))
+
+
+@fixture
+def f_team_formation(conn, organization_id, team_id, formation_id):
+    sql = """
+          INSERT INTO team_formation
+            (organization_id, team_id, formation_id)
+          VALUES
+            (%(organization_id)s, %(team_id)s, %(formation_id)s)
+          """
+    return _insert_and_get_id(conn, sql,
+                              dict(organization_id=organization_id,
+                                   team_id=team_id,
+                                   formation_id=formation_id))
 
 
 @fixture

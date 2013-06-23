@@ -269,9 +269,11 @@ def dump_posix_users(organization_id, db, ldif_writer):
 
 def _deactivate_disabled_posix_users(users):
    for user in users:
-      if user['is_disabled']:
+      if user['is_disabled'] or not user['posix_login_shell']:
          user['posix_login_shell'] = '/usr/sbin/nologin'
          user['formatted_password'] = '{MD5}!'
+         user['host'] = []
+         user['authorizedService'] = []
 
 
 def _select_active_posix_users(organization_id, db):
@@ -320,12 +322,56 @@ def _select_active_posix_users(organization_id, db):
    for user in users:
       user['posix_uid_num'] = _select_posix_uid_num(db, user['id'])
       user['posix_login_shell'] = _select_posix_login_shell(db, user['id'])
+      user['authorizedService'] = ['*']
+      user['host'] = _hosts_for_user(user['id'],
+                                     organization_id,
+                                     db)
+      # TODO public key
+
+   print users
 
    return users
 
 
+def _hosts_for_user(user_id, organization_id, db):
+   """
+   Note that we don't care if the user is disabled, as hosts will be
+   removed later for a disabled user, but we do care very much if the
+   teams are disabled.
+   """
+   select = """
+            SELECT da.val
+              FROM user u INNER JOIN user_team ut
+                     ON u.id = ut.user_id
+                   INNER JOIN team t
+                     ON ut.team_id = t.id
+                   INNER JOIN team_formation tf
+                     ON tf.team_id = t.id
+                   INNER JOIN device d
+                     ON tf.formation_id = d.formation_id
+                   INNER JOIN device_attribute da
+                     ON da.device_id = d.id
+             WHERE t.is_disabled IS FALSE
+                     AND
+                   t.organization_id = %(organization_id)s
+                     AND
+                   u.id = %(user_id)s
+                     AND
+                   da.var = 'dns.external.fqdn'
+            """
+   hosts = [r[0]
+            for r
+            in select_rows(db,
+                           select, dict(organization_id=organization_id,
+                                        user_id=user_id))]
+
+   hosts = list(set(hosts))
+   # make it easier to test these
+   hosts.sort()
+   return hosts
+
+
 def _dump_posix_user_to_ldif(user, ldif_writer):
-   print repr(user)
    ldif_writer.unparse(
       dn="uid=%s" % user['name'],
       attrs=dict(objectClass=['inetOrgPerson',
@@ -342,7 +388,9 @@ def _dump_posix_user_to_ldif(user, ldif_writer):
                  givenName=[user['first_name']],
                  homeDirectory=['/home/%s' % user['name']],
                  sn=[user['last_name']],
-                 uid=[user['name']]))
+                 uid=[user['name']],
+                 authorizedService=user['authorizedService'],
+                 host=user['host']))
 
 
 def _select_posix_login_shell(db, user_id):
