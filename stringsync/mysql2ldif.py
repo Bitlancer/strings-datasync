@@ -23,7 +23,7 @@ class AmbiguousLdapDomain(Exception):
 def dump_organization(organization_id, db, ldif_writer):
    """
    Returns the extended ldif writer of the organization for use in
-   tree-like dumping.
+   tree-like dumping, and the org dn for use in dumping members.
    """
    org_dn = organization_dn(organization_id, db)
    full_name = organization_name(organization_id, db)
@@ -33,7 +33,7 @@ def dump_organization(organization_id, db, ldif_writer):
                                   structuralObjectClass=['organization'],
                                   o=[full_name],
                                   dc=[_org_dc_from_dn(org_dn)]))
-   return build_dn(org_dn, ldif_writer)
+   return build_dn(org_dn, ldif_writer), org_dn
 
 
 def dump_people_ou(db, ldif_writer):

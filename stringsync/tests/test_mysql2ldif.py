@@ -70,8 +70,9 @@ class TestMysql2Ldif(object):
         _conf = f.f_ldap_domain_config_1(self.conn)
         ldif = StrLdif()
         # make sure we return a modified ldif writer for further use
-        new_ldif = dump_organization(org_1, self.conn, ldif)
+        new_ldif, org_dn = dump_organization(org_1, self.conn, ldif)
         _check_dn_ldif_writer(new_ldif, 'dc=org-one-infra,dc=net')
+        eq_("dc=org-one-infra,dc=net", org_dn)
         eq_(dd("""\
                dn: dc=org-one-infra,dc=net
                dc: org-one-infra
