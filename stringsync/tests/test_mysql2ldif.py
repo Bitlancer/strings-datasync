@@ -10,7 +10,8 @@ from stringsync.mysql2ldif import organization_dn, NoLdapDomain, \
     AmbiguousLdapDomain, organization_name, dump_organization, \
     dump_people_ou, dump_people_groups_ou, dump_people_groups, \
     dump_people_users_ou, dump_people_users, dump_nodes_ou, \
-    dump_data_centers, dump_devices, dump_posix_ou, dump_posix_groups_ou
+    dump_data_centers, dump_devices, dump_posix_ou, dump_posix_groups_ou, \
+    dump_posix_users_ou
 from stringsync import fixtures as f
 from stringsync.ldif_writers import BuildDnLdifWriter, build_dn
 
@@ -340,6 +341,21 @@ class TestMysql2Ldif(object):
 
                """), ldif.ldif())
 
+    def test_dump_posix_users_ou(self):
+        ldif = StrLdif()
+        # just to make sure that we're wrapping, as that's what will
+        # happen
+        posix_ldif = build_dn('ou=posix,dc=org-one-infra,dc=net', ldif)
+        # make sure we return a modified ldif writer for further use
+        new_ldif = dump_posix_users_ou(posix_ldif)
+        _check_dn_ldif_writer(new_ldif, 'ou=users')
+        eq_(dd("""\
+               dn: ou=users,ou=posix,dc=org-one-infra,dc=net
+               objectClass: organizationalUnit
+               ou: users
+               structuralObjectClass: organizationalUnit
+
+               """), ldif.ldif())
 
 
 def _check_dn_ldif_writer(ldif, dn):
