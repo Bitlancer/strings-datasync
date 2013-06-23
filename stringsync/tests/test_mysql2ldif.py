@@ -91,7 +91,7 @@ class TestMysql2Ldif(object):
         # happen
         org_ldif = build_dn('dc=org-one-infra,dc=net', ldif)
         # make sure we return a modified ldif writer for further use
-        new_ldif = dump_people_ou(self.conn, org_ldif)
+        new_ldif = dump_people_ou(org_ldif)
         _check_dn_ldif_writer(new_ldif, 'ou=people')
         eq_(dd("""\
                dn: ou=people,dc=org-one-infra,dc=net
@@ -107,7 +107,7 @@ class TestMysql2Ldif(object):
         # happen
         people_ldif = build_dn('ou=people,dc=org-one-infra,dc=net', ldif)
         # make sure we return a modified ldif writer for further use
-        new_ldif = dump_people_groups_ou(self.conn, people_ldif)
+        new_ldif = dump_people_groups_ou(people_ldif)
         _check_dn_ldif_writer(new_ldif, 'ou=groups')
         eq_(dd("""\
                dn: ou=groups,ou=people,dc=org-one-infra,dc=net
@@ -172,7 +172,7 @@ class TestMysql2Ldif(object):
         # happen
         people_ldif = build_dn('ou=people,dc=org-one-infra,dc=net', ldif)
         # make sure we return a modified ldif writer for further use
-        new_ldif = dump_people_users_ou(self.conn, people_ldif)
+        new_ldif = dump_people_users_ou(people_ldif)
         _check_dn_ldif_writer(new_ldif, 'ou=users')
         eq_(dd("""\
                dn: ou=users,ou=people,dc=org-one-infra,dc=net
@@ -221,7 +221,7 @@ class TestMysql2Ldif(object):
         # happen
         org_ldif = build_dn('dc=org-one-infra,dc=net', ldif)
         # make sure we return a modified ldif writer for further use
-        new_ldif = dump_nodes_ou(self.conn, org_ldif)
+        new_ldif = dump_nodes_ou(org_ldif)
         _check_dn_ldif_writer(new_ldif, 'ou=nodes')
         eq_(dd("""\
                dn: ou=nodes,dc=org-one-infra,dc=net

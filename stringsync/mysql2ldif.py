@@ -36,7 +36,7 @@ def dump_organization(organization_id, db, ldif_writer):
    return build_dn(org_dn, ldif_writer), org_dn
 
 
-def dump_people_ou(db, ldif_writer):
+def dump_people_ou(ldif_writer):
    """
    Returns the extended ldif writer of the people ou for use in
    tree-like dumping.
@@ -49,7 +49,7 @@ def dump_people_ou(db, ldif_writer):
    return build_dn('ou=people', ldif_writer)
 
 
-def dump_people_groups_ou(db, ldif_writer):
+def dump_people_groups_ou(ldif_writer):
    """
    Returns the extended ldif writer of the people groups ou for use in
    tree-like dumping.
@@ -96,7 +96,7 @@ def dump_people_groups(organization_id, member_dn, db, ldif_writer):
                        in member_names]))
 
 
-def dump_people_users_ou(db, ldif_writer):
+def dump_people_users_ou(ldif_writer):
    """
    Dump the users ou under people.
 
@@ -129,7 +129,7 @@ def dump_people_users(organization_id, db, ldif_writer):
                     userPassword=["{SHA}%s" % user['password']]))
 
 
-def dump_nodes_ou(db, ldif_writer):
+def dump_nodes_ou(ldif_writer):
    """
    Dump the nodes ou.
 
