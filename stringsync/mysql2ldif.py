@@ -96,6 +96,20 @@ def dump_people_groups(organization_id, member_dn, db, ldif_writer):
                        in member_names]))
 
 
+def dump_people_users_ou(db, ldif_writer):
+   """
+   Dump the users ou under people.
+
+   Return an extended ldif writer for further writing.
+   """
+   ldif_writer.unparse(dn='ou=users',
+                       attrs=dict(
+         ou=['users'],
+         objectClass=['organizationalUnit'],
+         structuralObjectClass=['organizationalUnit']))
+   return build_dn('ou=users', ldif_writer)
+
+
 def _format_member(member_name, member_dn):
    return 'uid=%s,%s' % (member_name, member_dn)
 
