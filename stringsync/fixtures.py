@@ -230,6 +230,20 @@ def f_membership_u1_t2(conn):
                         team_id=f_team_2(conn))
 
 
+def f_membership_du_t1(conn):
+    return f_membership(conn,
+                        organization_id=f_organization_1(conn),
+                        user_id=f_disabled_user(conn),
+                        team_id=f_team_1(conn))
+
+
+def f_membership_su_t1(conn):
+    return f_membership(conn,
+                        organization_id=f_organization_1(conn),
+                        user_id=f_shelless_user(conn),
+                        team_id=f_team_1(conn))
+
+
 def f_membership_du_t2(conn):
     return f_membership(conn,
                         organization_id=f_organization_1(conn),

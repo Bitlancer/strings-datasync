@@ -388,12 +388,14 @@ class TestMysql2Ldif(object):
         uid_disabled = f.f_disabled_user_posix_uid(self.conn)
         # to make sure that the keys are removed
         disabled_user_key = f.f_disabled_user_key_1(self.conn)
+        du_t1 = f.f_membership_du_t1(self.conn)
 
         # a user with no shell should be treated as a disabled user
         shelless_user = f.f_shelless_user(self.conn)
         uid_shelless = f.f_shelless_user_posix_uid(self.conn)
         # to make sure that the keys are removed
         shelless_user_key = f.f_shelless_user_key_1(self.conn)
+        su_t1 = f.f_membership_su_t1(self.conn)
 
         ldif = StrLdif()
         # just to make sure that we're wrapping, as that's what will
