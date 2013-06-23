@@ -199,6 +199,20 @@ def dump_devices(organization_id, db, ldif_writer):
                     cn=[fqdn]))
 
 
+def dump_posix_ou(ldif_writer):
+   """
+   Dump the posix organizational unit to the ldif writer.
+
+   Return an extended ldif writer for child entries.
+   """
+   ldif_writer.unparse(
+      dn='ou=posix',
+      attrs=dict(ou=['unix', 'posix'],
+                 structuralObjectClass=['organizationalUnit'],
+                 objectClass=['organizationalUnit']))
+   return build_dn('ou=posix', ldif_writer)
+
+
 def _select_devices(organization_id, db):
    """
    Return a dict of role, external_fqdn for each device in the
