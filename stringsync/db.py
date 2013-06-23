@@ -57,3 +57,14 @@ def select_row(db, select, params):
     finally:
         if curs:
             curs.close()
+
+
+def select_val(db, select, params):
+    row = select_row(db, select, params)
+    if not row:
+        return None
+    if len(row) > 1:
+        raise Exception("More than one val in select val %s" %
+                        row)
+    return row[0]
+
