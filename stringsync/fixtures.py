@@ -243,7 +243,7 @@ def f_device_2_ex_fqdn(conn):
     return f_device_attribute(
         conn,
         organization_id=f_organization_1(conn),
-        device_id=f_device_1(conn),
+        device_id=f_device_2(conn),
         var='dns.external.fqdn',
         val='device_two.data_center_two.org-one-infra.net')
 
@@ -260,7 +260,7 @@ def f_device_3_ex_fqdn(conn):
     return f_device_attribute(
         conn,
         organization_id=f_organization_1(conn),
-        device_id=f_device_1(conn),
+        device_id=f_device_3(conn),
         var='dns.external.fqdn',
         val='device_three.data_center_two.org-one-infra.net')
 

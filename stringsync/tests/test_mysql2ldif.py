@@ -10,7 +10,7 @@ from stringsync.mysql2ldif import organization_dn, NoLdapDomain, \
     AmbiguousLdapDomain, organization_name, dump_organization, \
     dump_people_ou, dump_people_groups_ou, dump_people_groups, \
     dump_people_users_ou, dump_people_users, dump_nodes_ou, \
-    dump_data_centers
+    dump_data_centers, dump_devices
 from stringsync import fixtures as f
 from stringsync.ldif_writers import BuildDnLdifWriter, build_dn
 
@@ -258,6 +258,54 @@ class TestMysql2Ldif(object):
                structuralObjectClass: organizationalUnit
 
                """), ldif.ldif())
+
+    def test_dump_devices(self):
+        org_1 = f.f_organization_1(self.conn)
+        dev_1 = f.f_device_1(self.conn)
+        dev_2 = f.f_device_2(self.conn)
+        dev_3 = f.f_device_3(self.conn)
+        fqdn_1 = f.f_device_1_ex_fqdn(self.conn)
+        fqdn_2 = f.f_device_2_ex_fqdn(self.conn)
+        fqdn_3 = f.f_device_3_ex_fqdn(self.conn)
+        role_1 = f.f_role_1(self.conn)
+        role_2 = f.f_role_2(self.conn)
+        ldif = StrLdif()
+        # just to make sure that we're wrapping, as that's what will
+        # happen
+        nodes_ldif = build_dn('ou=nodes,dc=org-one-infra,dc=net', ldif)
+        # make sure we don't return an ldif writer
+        eq_(None,
+            dump_devices(org_1, self.conn, nodes_ldif))
+        eq_(dd("""\
+          dn: cn=device_one.data_center_one.org-one-infra.net,ou=data_center_one,ou=no
+           des,dc=org-one-infra,dc=net
+          cn: device_one.data_center_one.org-one-infra.net
+          description: role_one
+          objectClass: device
+          objectClass: puppetClient
+          puppetClass: role_one
+          structuralObjectClass: device
+
+          dn: cn=device_three.data_center_two.org-one-infra.net,ou=data_center_two,ou=
+           nodes,dc=org-one-infra,dc=net
+          cn: device_three.data_center_two.org-one-infra.net
+          description: role_one
+          objectClass: device
+          objectClass: puppetClient
+          puppetClass: role_one
+          structuralObjectClass: device
+
+          dn: cn=device_two.data_center_two.org-one-infra.net,ou=data_center_two,ou=no
+           des,dc=org-one-infra,dc=net
+          cn: device_two.data_center_two.org-one-infra.net
+          description: role_two
+          objectClass: device
+          objectClass: puppetClient
+          puppetClass: role_two
+          structuralObjectClass: device
+
+          """), ldif.ldif())
+
 
 
 def _check_dn_ldif_writer(ldif, dn):

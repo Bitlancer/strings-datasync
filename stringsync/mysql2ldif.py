@@ -171,6 +171,56 @@ def dump_data_centers(organization_id, db, ldif_writer):
                     ou=[data_center]))
 
 
+def dump_devices(organization_id, db, ldif_writer):
+   """
+   Dump the devices with puppet info under nodes.
+
+   As these are leaf entries, don't return an extended ldif writer.
+   """
+   devices = _select_devices(organization_id, db)
+   # sort by cn to make it predictable and testable
+   cn_and_devices = [(device['external_fqdn'], device)
+                     for device
+                     in devices]
+   cn_and_devices.sort()
+   devices = [d[1] for d in cn_and_devices]
+
+   for device in devices:
+      fqdn = device['external_fqdn']
+      # we determine the data center here rather than iterating
+      # underneath it b/c there's no good iteration organization in
+      # the database.
+      ldif_writer.unparse(
+         dn="cn=%s,ou=%s" % (fqdn, _data_center(fqdn)),
+         attrs=dict(objectClass=['device', 'puppetClient'],
+                    structuralObjectClass=['device'],
+                    description=[device['role']],
+                    puppetClass=[device['role']],
+                    cn=[fqdn]))
+
+
+def _select_devices(organization_id, db):
+   """
+   Return a dict of role, external_fqdn for each device in the
+   indicated organization.
+   """
+   select = """
+            SELECT r.name,
+                   a.val
+               FROM device d LEFT OUTER JOIN role r
+                      ON d.role_id = r.id
+                    LEFT OUTER JOIN device_attribute a
+                      ON d.id = a.device_id
+               WHERE a.var = 'dns.external.fqdn'
+                       AND
+                     d.organization_id = %(organization_id)s
+            """
+   return [dict(role=r[0],
+                external_fqdn=r[1])
+           for r
+           in select_rows(db, select, dict(organization_id=organization_id))]
+
+
 def _data_center(fqdn):
    segs = fqdn.split('.')
    if len(segs) < 2:
