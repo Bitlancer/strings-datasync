@@ -371,13 +371,22 @@ class TestMysql2Ldif(object):
         t_d_u_1 = f.f_membership_u1_dt(self.conn)
         t_d_f_2 = f.f_disabled_team_formation_2(self.conn)
 
+        # for access through applications...
         a_1 = f.f_application_1(self.conn)
         a_1_f_3 = f.f_application_1_formation_3(self.conn)
         t_1_a_1 = f.f_team_1_application_1(self.conn)
 
+        # including making sure that disabled teams don't get in
+        # through applications...
         a_2 = f.f_application_2(self.conn)
         a_2_f_2 = f.f_application_2_formation_2(self.conn)
         dt_a2 = f.f_disabled_team_application_2(self.conn)
+
+        # for team access to devices...
+        t1_d6 = f.f_team_1_device_6(self.conn)
+        # including making sure that disabled teams don't get to
+        # devices.
+        dt_d2 = f.f_disabled_team_device_2(self.conn)
 
         # we include disabled team, and connect it to formation 2,
         # which contains device 2, to make sure that a disabled team
@@ -393,6 +402,8 @@ class TestMysql2Ldif(object):
         fqdn_2 = f.f_device_2_ex_fqdn(self.conn)
         d_5 = f.f_device_5(self.conn)
         fqdn_5 = f.f_device_5_ex_fqdn(self.conn)
+        d_6 = f.f_device_6(self.conn)
+        fqdn_6 = f.f_device_6_ex_fqdn(self.conn)
 
         disabled_user = f.f_disabled_user(self.conn)
         shell_disabled = f.f_disabled_user_posix_login_shell(self.conn)
@@ -427,6 +438,7 @@ class TestMysql2Ldif(object):
                host: device_five.data_center_two.org-one-infra.net
                host: device_four.data_center_two.org-one-infra.net
                host: device_one.data_center_one.org-one-infra.net
+               host: device_six.data_center_two.org-one-infra.net
                loginShell: /bin/user_1_shell
                objectClass: inetOrgPerson
                objectClass: posixAccount

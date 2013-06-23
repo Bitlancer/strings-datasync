@@ -447,6 +447,24 @@ def _hosts_for_posix_user(user_id, organization_id, db):
                      u.id = %(user_id)s
                        AND
                      da.var = 'dns.external.fqdn'
+              """,
+              """
+              SELECT da.val
+                FROM user u INNER JOIN user_team ut
+                       ON u.id = ut.user_id
+                     INNER JOIN team t
+                       ON ut.team_id = t.id
+                     INNER JOIN team_device td
+                       ON td.team_id = t.id
+                     INNER JOIN device_attribute da
+                       ON da.device_id = td.device_id
+               WHERE t.is_disabled IS FALSE
+                       AND
+                     t.organization_id = %(organization_id)s
+                       AND
+                     u.id = %(user_id)s
+                       AND
+                     da.var = 'dns.external.fqdn'
               """]
    hosts = []
    for select in selects:

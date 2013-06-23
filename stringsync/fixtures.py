@@ -22,7 +22,8 @@ TABLES = [
     'user_key',
     'application',
     'team_application',
-    'application_formation'
+    'application_formation',
+    'team_device'
 ]
 
 
@@ -316,6 +317,12 @@ def f_formation_3(conn):
                        name="formation_three")
 
 
+def f_formation_6(conn):
+    return f_formation(conn,
+                       organization_id=f_organization_1(conn),
+                       name="formation_six")
+
+
 def f_application_1(conn):
     return f_application(conn,
                        organization_id=f_organization_1(conn),
@@ -387,6 +394,23 @@ def f_device_5_ex_fqdn(conn):
         device_id=f_device_5(conn),
         var='dns.external.fqdn',
         val='device_five.data_center_two.org-one-infra.net')
+
+
+def f_device_6(conn):
+    return f_device(conn,
+                    organization_id=f_organization_1(conn),
+                    name="device_six",
+                    role_id=f_role_2(conn),
+                    formation_id=f_formation_6(conn))
+
+
+def f_device_6_ex_fqdn(conn):
+    return f_device_attribute(
+        conn,
+        organization_id=f_organization_1(conn),
+        device_id=f_device_6(conn),
+        var='dns.external.fqdn',
+        val='device_six.data_center_two.org-one-infra.net')
 
 
 def f_device_2_ex_fqdn(conn):
@@ -462,6 +486,20 @@ def f_shelless_user_key_1(conn):
                       user_id=f_shelless_user(conn),
                       name='shellessuser1@key1',
                       public_key='pub key 1 shelless user')
+
+
+def f_disabled_team_device_2(conn):
+    return f_team_device(conn,
+                         organization_id=f_organization_1(conn),
+                         team_id=f_disabled_team(conn),
+                         device_id=f_device_2(conn))
+
+
+def f_team_1_device_6(conn):
+    return f_team_device(conn,
+                         organization_id=f_organization_1(conn),
+                         team_id=f_team_1(conn),
+                         device_id=f_device_6(conn))
 
 
 @fixture
@@ -663,6 +701,20 @@ def f_application_formation(conn, organization_id,
                               dict(organization_id=organization_id,
                                    application_id=application_id,
                                    formation_id=formation_id))
+
+
+@fixture
+def f_team_device(conn, organization_id, team_id, device_id):
+    sql = """
+          INSERT INTO team_device
+            (organization_id, team_id, device_id)
+          VALUES
+            (%(organization_id)s, %(team_id)s, %(device_id)s)
+          """
+    return _insert_and_get_id(conn, sql,
+                              dict(organization_id=organization_id,
+                                   team_id=team_id,
+                                   device_id=device_id))
 
 
 def _insert_and_get_id(conn, sql, args):
