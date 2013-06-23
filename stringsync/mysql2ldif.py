@@ -143,6 +143,56 @@ def dump_nodes_ou(db, ldif_writer):
    return build_dn('ou=nodes', ldif_writer)
 
 
+def dump_data_centers(organization_id, db, ldif_writer):
+   """
+   Dump the data centers as organizational units.
+
+   We generate the data centers by assuming that the second segment of
+   the external fqdns are always the data center, and generating from
+   those.
+
+   Even though these are technically not leaf entries, don't return an
+   extended ldif writer, since there's not an easy way to iterate
+   through the devices in a data center, and instead we just generate
+   the datacenter ou part of the device dn when dumping devices
+   individually.
+   """
+   device_fqdns = _select_device_fqdns(organization_id, db)
+   data_centers = list(set([_data_center(fqdn)
+                            for fqdn
+                            in device_fqdns]))
+   # make this predictable and therefore testable
+   data_centers.sort()
+   for data_center in data_centers:
+      ldif_writer.unparse(
+         dn='ou=%s' % data_center,
+         attrs=dict(objectClass=['organizationalUnit'],
+                    structuralObjectClass=['organizationalUnit'],
+                    ou=[data_center]))
+
+
+def _data_center(fqdn):
+   segs = fqdn.split('.')
+   if len(segs) < 2:
+      raise Exception("FQDN has no data center %s" % fqdn)
+   return segs[1]
+
+
+def _select_device_fqdns(organization_id, db):
+   select = """
+            SELECT val
+              FROM device_attribute
+              WHERE var = 'dns.external.fqdn'
+                      AND
+                    organization_id = %(organization_id)s
+            """
+   return [r[0]
+           for r
+           in select_rows(db,
+                          select,
+                          dict(organization_id=organization_id))]
+
+
 def _select_active_user_data(organization_id, db):
    """
    Return a list of dicts of active user data for the organization.

@@ -9,7 +9,8 @@ from stringsync import db
 from stringsync.mysql2ldif import organization_dn, NoLdapDomain, \
     AmbiguousLdapDomain, organization_name, dump_organization, \
     dump_people_ou, dump_people_groups_ou, dump_people_groups, \
-    dump_people_users_ou, dump_people_users, dump_nodes_ou
+    dump_people_users_ou, dump_people_users, dump_nodes_ou, \
+    dump_data_centers
 from stringsync import fixtures as f
 from stringsync.ldif_writers import BuildDnLdifWriter, build_dn
 
@@ -226,6 +227,34 @@ class TestMysql2Ldif(object):
                dn: ou=nodes,dc=org-one-infra,dc=net
                objectClass: organizationalUnit
                ou: nodes
+               structuralObjectClass: organizationalUnit
+
+               """), ldif.ldif())
+
+    def test_dump_data_centers(self):
+        org_1 = f.f_organization_1(self.conn)
+        dev_1 = f.f_device_1(self.conn)
+        dev_2 = f.f_device_2(self.conn)
+        dev_3 = f.f_device_3(self.conn)
+        fqdn_1 = f.f_device_1_ex_fqdn(self.conn)
+        fqdn_2 = f.f_device_2_ex_fqdn(self.conn)
+        fqdn_3 = f.f_device_3_ex_fqdn(self.conn)
+        ldif = StrLdif()
+        # just to make sure that we're wrapping, as that's what will
+        # happen
+        nodes_ldif = build_dn('ou=nodes,dc=org-one-infra,dc=net', ldif)
+        # make sure we don't return an ldif writer
+        eq_(None,
+            dump_data_centers(org_1, self.conn, nodes_ldif))
+        eq_(dd("""\
+               dn: ou=data_center_one,ou=nodes,dc=org-one-infra,dc=net
+               objectClass: organizationalUnit
+               ou: data_center_one
+               structuralObjectClass: organizationalUnit
+
+               dn: ou=data_center_two,ou=nodes,dc=org-one-infra,dc=net
+               objectClass: organizationalUnit
+               ou: data_center_two
                structuralObjectClass: organizationalUnit
 
                """), ldif.ldif())

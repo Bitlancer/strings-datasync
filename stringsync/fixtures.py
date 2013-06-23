@@ -12,7 +12,11 @@ TABLES = [
     'config',
     'team',
     'user_team',
-    'user'
+    'user',
+    'device',
+    'role',
+    'formation',
+    'device_attribute'
 ]
 
 
@@ -186,6 +190,81 @@ def f_membership_u1_dt(conn):
                         team_id=f_disabled_team(conn))
 
 
+def f_formation_1(conn):
+    return f_formation(conn,
+                       organization_id=f_organization_1(conn),
+                       name="formation_one")
+
+
+def f_role_1(conn):
+    return f_role(conn,
+                  organization_id=f_organization_1(conn),
+                  name="role_one")
+
+
+def f_device_1(conn):
+    return f_device(conn,
+                    organization_id=f_organization_1(conn),
+                    name="device_one",
+                    role_id=f_role_1(conn),
+                    formation_id=f_formation_1(conn))
+
+
+def f_device_1_ex_fqdn(conn):
+    return f_device_attribute(
+        conn,
+        organization_id=f_organization_1(conn),
+        device_id=f_device_1(conn),
+        var='dns.external.fqdn',
+        val='device_one.data_center_one.org-one-infra.net')
+
+
+def f_formation_2(conn):
+    return f_formation(conn,
+                       organization_id=f_organization_1(conn),
+                       name="formation_two")
+
+
+def f_role_2(conn):
+    return f_role(conn,
+                  organization_id=f_organization_1(conn),
+                  name="role_two")
+
+
+def f_device_2(conn):
+    return f_device(conn,
+                    organization_id=f_organization_1(conn),
+                    name="device_two",
+                    role_id=f_role_2(conn),
+                    formation_id=f_formation_2(conn))
+
+
+def f_device_2_ex_fqdn(conn):
+    return f_device_attribute(
+        conn,
+        organization_id=f_organization_1(conn),
+        device_id=f_device_1(conn),
+        var='dns.external.fqdn',
+        val='device_two.data_center_two.org-one-infra.net')
+
+
+def f_device_3(conn):
+    return f_device(conn,
+                    organization_id=f_organization_1(conn),
+                    name="device_three",
+                    role_id=f_role_1(conn),
+                    formation_id=f_formation_2(conn))
+
+
+def f_device_3_ex_fqdn(conn):
+    return f_device_attribute(
+        conn,
+        organization_id=f_organization_1(conn),
+        device_id=f_device_1(conn),
+        var='dns.external.fqdn',
+        val='device_three.data_center_two.org-one-infra.net')
+
+
 @fixture
 def f_organization(conn, name=None, short_name=None, is_disabled=False):
     sql = """INSERT INTO organization
@@ -243,6 +322,67 @@ def f_membership(conn, organization_id, user_id, team_id):
                  VALUES
                (%s, %s, %s)"""
     return _insert_and_get_id(conn, sql, (organization_id, user_id, team_id))
+
+
+@fixture
+def f_device(conn,
+             organization_id,
+             name,
+             role_id,
+             formation_id,
+             device_type_id=1,
+             implementation_id=1):
+    sql = """
+          INSERT INTO device
+            (organization_id, name, role_id,
+             formation_id, device_type_id, implementation_id)
+              VALUES
+            (%(organization_id)s, %(name)s, %(role_id)s,
+             %(formation_id)s, %(device_type_id)s, %(implementation_id)s)
+          """
+    return _insert_and_get_id(conn, sql,
+                              dict(organization_id=organization_id,
+                                   name=name,
+                                   role_id=role_id,
+                                   formation_id=formation_id,
+                                   device_type_id=device_type_id,
+                                   implementation_id=implementation_id))
+
+
+@fixture
+def f_role(conn, organization_id, name):
+    sql = """
+          INSERT INTO role
+            (organization_id, name)
+              VALUES
+            (%(organization_id)s, %(name)s)
+          """
+    return _insert_and_get_id(conn, sql,
+                              dict(organization_id=organization_id,
+                                   name=name))
+
+
+@fixture
+def f_formation(conn, organization_id, name):
+    sql = """
+          INSERT INTO formation
+            (organization_id, name)
+              VALUES
+            (%(organization_id)s, %(name)s)
+          """
+    return _insert_and_get_id(conn, sql,
+                              dict(organization_id=organization_id,
+                                   name=name))
+
+
+@fixture
+def f_device_attribute(conn, organization_id, device_id, var, val):
+    sql = """INSERT INTO device_attribute
+               (organization_id, device_id, var, val)
+                 VALUES
+               (%s, %s, %s, %s)"""
+    return _insert_and_get_id(conn, sql,
+                              (organization_id, device_id, var, val))
 
 
 def _insert_and_get_id(conn, sql, args):
