@@ -274,6 +274,7 @@ def _deactivate_disabled_posix_users(users):
          user['formatted_password'] = '{MD5}!'
          user['host'] = []
          user['authorizedService'] = []
+         user['sshPublicKey'] = []
 
 
 def _select_active_posix_users(organization_id, db):
@@ -323,17 +324,33 @@ def _select_active_posix_users(organization_id, db):
       user['posix_uid_num'] = _select_posix_uid_num(db, user['id'])
       user['posix_login_shell'] = _select_posix_login_shell(db, user['id'])
       user['authorizedService'] = ['*']
-      user['host'] = _hosts_for_user(user['id'],
-                                     organization_id,
-                                     db)
-      # TODO public key
-
-   print users
+      user['host'] = _hosts_for_posix_user(user['id'],
+                                           organization_id,
+                                           db)
+      user['sshPublicKey'] = _public_keys_for_posix_user(user['id'],
+                                                         organization_id,
+                                                         db)
 
    return users
 
 
-def _hosts_for_user(user_id, organization_id, db):
+def _public_keys_for_posix_user(user_id, organization_id, db):
+   select = """
+            SELECT public_key
+              FROM user_key
+              WHERE organization_id = %(organization_id)s
+                      AND
+                    user_id = %(user_id)s
+            """
+   return [r[0]
+           for r
+           in select_rows(db,
+                          select,
+                          dict(organization_id=organization_id,
+                               user_id=user_id))]
+
+
+def _hosts_for_posix_user(user_id, organization_id, db):
    """
    Note that we don't care if the user is disabled, as hosts will be
    removed later for a disabled user, but we do care very much if the
@@ -390,7 +407,8 @@ def _dump_posix_user_to_ldif(user, ldif_writer):
                  sn=[user['last_name']],
                  uid=[user['name']],
                  authorizedService=user['authorizedService'],
-                 host=user['host']))
+                 host=user['host'],
+                 sshPublicKey=user['sshPublicKey']))
 
 
 def _select_posix_login_shell(db, user_id):

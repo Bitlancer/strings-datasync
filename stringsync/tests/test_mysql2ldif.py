@@ -363,6 +363,8 @@ class TestMysql2Ldif(object):
         user_1 = f.f_user_1(self.conn)
         shell_1 = f.f_user_1_posix_login_shell(self.conn)
         uid_1 = f.f_user_1_posix_uid(self.conn)
+        u_1_k_1 = f.f_user_1_key_1(self.conn)
+        u_1_k_2 = f.f_user_1_key_2(self.conn)
         t_1 = f.f_team_1(self.conn)
         u_t_1 = f.f_membership_u1_t1(self.conn)
         t_1_f_1 = f.f_team_1_formation_1(self.conn)
@@ -384,10 +386,14 @@ class TestMysql2Ldif(object):
         disabled_user = f.f_disabled_user(self.conn)
         shell_disabled = f.f_disabled_user_posix_login_shell(self.conn)
         uid_disabled = f.f_disabled_user_posix_uid(self.conn)
+        # to make sure that the keys are removed
+        disabled_user_key = f.f_disabled_user_key_1(self.conn)
 
         # a user with no shell should be treated as a disabled user
         shelless_user = f.f_shelless_user(self.conn)
         uid_shelless = f.f_shelless_user_posix_uid(self.conn)
+        # to make sure that the keys are removed
+        shelless_user_key = f.f_shelless_user_key_1(self.conn)
 
         ldif = StrLdif()
         # just to make sure that we're wrapping, as that's what will
@@ -413,6 +419,8 @@ class TestMysql2Ldif(object):
                objectClass: authorizedServiceObject
                objectClass: hostObject
                sn: User
+               sshPublicKey: pub key 1 user 1
+               sshPublicKey: pub key 2 user 1
                structuralObjectClass: inetOrgPerson
                uid: user_one
                uidNumber: 2001

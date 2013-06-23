@@ -18,7 +18,8 @@ TABLES = [
     'formation',
     'device_attribute',
     'user_attribute',
-    'team_formation'
+    'team_formation',
+    'user_key'
 ]
 
 
@@ -349,6 +350,37 @@ def f_device_4_ex_fqdn(conn):
         val='device_four.data_center_two.org-one-infra.net')
 
 
+def f_user_1_key_1(conn):
+    return f_user_key(conn,
+                      organization_id=f_organization_1(conn),
+                      user_id=f_user_1(conn),
+                      name='user1@key1',
+                      public_key='pub key 1 user 1')
+
+
+def f_user_1_key_2(conn):
+    return f_user_key(conn,
+                      organization_id=f_organization_1(conn),
+                      user_id=f_user_1(conn),
+                      name='user1@key2',
+                      public_key='pub key 2 user 1')
+
+
+def f_disabled_user_key_1(conn):
+    return f_user_key(conn,
+                      organization_id=f_organization_1(conn),
+                      user_id=f_disabled_user(conn),
+                      name='disableduser1@key1',
+                      public_key='pub key 1 disabled user')
+
+
+def f_shelless_user_key_1(conn):
+    return f_user_key(conn,
+                      organization_id=f_organization_1(conn),
+                      user_id=f_shelless_user(conn),
+                      name='shellessuser1@key1',
+                      public_key='pub key 1 shelless user')
+
 
 @fixture
 def f_organization(conn, name=None, short_name=None, is_disabled=False):
@@ -492,6 +524,21 @@ def f_user_attribute(conn, organization_id, user_id, var, val):
                (%s, %s, %s, %s)"""
     return _insert_and_get_id(conn, sql,
                               (organization_id, user_id, var, val))
+
+
+@fixture
+def f_user_key(conn, organization_id, user_id, name, public_key):
+    sql = """
+          INSERT INTO user_key
+            (organization_id, user_id, name, public_key)
+              VALUES
+            (%(organization_id)s, %(user_id)s, %(name)s, %(public_key)s)
+          """
+    return _insert_and_get_id(conn, sql,
+                              dict(organization_id=organization_id,
+                                   user_id=user_id,
+                                   name=name,
+                                   public_key=public_key))
 
 
 def _insert_and_get_id(conn, sql, args):
