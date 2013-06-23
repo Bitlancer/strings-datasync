@@ -11,7 +11,8 @@ TABLES = [
     'organization',
     'config',
     'team',
-    'user_team'
+    'user_team',
+    'user'
 ]
 
 fixt_results = {}
