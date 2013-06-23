@@ -15,7 +15,9 @@ TABLES = [
     'user'
 ]
 
+
 fixt_results = {}
+
 
 def reset_fixtures():
     global fixt_results
