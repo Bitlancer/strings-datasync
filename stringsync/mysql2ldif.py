@@ -231,6 +231,26 @@ def dump_posix_groups_ou(ldif_writer):
    return build_dn('ou=groups', ldif_writer)
 
 
+def dump_posix_groups(organization_id, db, ldif_writer):
+   """
+   Write one posix group for each user (whether disabled or not).
+
+   As these are leaf entries, don't return an ldif writer.
+   """
+   user_ids_and_names = _user_ids_and_names_for_posix_groups(organization_id,
+                                                             db)
+   for user_id, name in user_ids_and_names:
+      gid = _select_posix_uid_num(db, user_id)
+      if gid is None:
+         raise Exception("Missing uid for user %s" % name)
+      ldif_writer.unparse(
+         dn="cn=%s" % name,
+         attrs=dict(cn=[name],
+                    gidNumber=[gid],
+                    objectClass=['posixGroup'],
+                    structuralObjectClass=['posixGroup']))
+
+
 def dump_posix_users_ou(ldif_writer):
    """
    Dump the ou for posix users
@@ -265,6 +285,20 @@ def dump_posix_users(organization_id, db, ldif_writer):
    _deactivate_disabled_posix_users(users)
    for user in users:
       _dump_posix_user_to_ldif(user, ldif_writer)
+
+
+def _user_ids_and_names_for_posix_groups(organization_id, db):
+   """
+   Return the user ids and names for all users, disabled or not, in
+   the organization, for user in creating posix groups.
+   """
+   select = """
+            SELECT id,
+                   name
+              FROM user
+              WHERE organization_id = %(organization_id)s
+           """
+   return select_rows(db, select, dict(organization_id=organization_id))
 
 
 def _deactivate_disabled_posix_users(users):

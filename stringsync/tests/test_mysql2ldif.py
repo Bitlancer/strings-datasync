@@ -11,7 +11,7 @@ from stringsync.mysql2ldif import organization_dn, NoLdapDomain, \
     dump_people_ou, dump_people_groups_ou, dump_people_groups, \
     dump_people_users_ou, dump_people_users, dump_nodes_ou, \
     dump_data_centers, dump_devices, dump_posix_ou, dump_posix_groups_ou, \
-    dump_posix_users_ou, dump_posix_users
+    dump_posix_users_ou, dump_posix_users, dump_posix_groups
 from stringsync import fixtures as f
 from stringsync.ldif_writers import BuildDnLdifWriter, build_dn
 
@@ -457,6 +457,50 @@ class TestMysql2Ldif(object):
                uid: no_shell_user
                uidNumber: 2003
                userPassword: {MD5}!
+
+               """),
+            ldif.ldif())
+
+    def test_dump_posix_groups(self):
+        org_1 = f.f_organization_1(self.conn)
+
+        user_1 = f.f_user_1(self.conn)
+        uid_1 = f.f_user_1_posix_uid(self.conn)
+
+        # disabled users need groups, too, man.
+        disabled_user = f.f_disabled_user(self.conn)
+        uid_disabled = f.f_disabled_user_posix_uid(self.conn)
+
+        # shelless users need groups, too, man.
+        shelless_user = f.f_shelless_user(self.conn)
+        uid_shelless = f.f_shelless_user_posix_uid(self.conn)
+
+        ldif = StrLdif()
+        # just to make sure that we're wrapping, as that's what will
+        # happen
+        groups_ldif = build_dn('ou=groups,ou=posix,dc=org-one-infra,dc=net',
+                              ldif)
+        # make sure no extended ldif is returned
+        eq_(None,
+            dump_posix_groups(org_1, self.conn, groups_ldif))
+        eq_(dd("""\
+               dn: cn=user_one,ou=groups,ou=posix,dc=org-one-infra,dc=net
+               cn: user_one
+               gidNumber: 2001
+               objectClass: posixGroup
+               structuralObjectClass: posixGroup
+
+               dn: cn=disabled_user_one,ou=groups,ou=posix,dc=org-one-infra,dc=net
+               cn: disabled_user_one
+               gidNumber: 2002
+               objectClass: posixGroup
+               structuralObjectClass: posixGroup
+
+               dn: cn=no_shell_user,ou=groups,ou=posix,dc=org-one-infra,dc=net
+               cn: no_shell_user
+               gidNumber: 2003
+               objectClass: posixGroup
+               structuralObjectClass: posixGroup
 
                """),
             ldif.ldif())
