@@ -287,6 +287,19 @@ def dump_posix_users(organization_id, db, ldif_writer):
       _dump_posix_user_to_ldif(user, ldif_writer)
 
 
+def dump_hosts_ou(ldif_writer):
+   """
+   Dump the top-level hosts ou, return an extended ldif_writer for
+   further use.
+   """
+   ldif_writer.unparse(
+      dn='ou=hosts',
+      attrs=dict(ou=['hosts'],
+                 objectClass=['organizationalUnit'],
+                 structuralObjectClass=['organizationalUnit']))
+   return build_dn('ou=hosts', ldif_writer)
+
+
 def _user_ids_and_names_for_posix_groups(organization_id, db):
    """
    Return the user ids and names for all users, disabled or not, in
