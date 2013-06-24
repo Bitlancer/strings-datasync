@@ -12,7 +12,8 @@ from stringsync.mysql2ldif import organization_dn, NoLdapDomain, \
     dump_people_users_ou, dump_people_users, dump_nodes_ou, \
     dump_data_centers, dump_devices, dump_posix_ou, dump_posix_groups_ou, \
     dump_posix_users_ou, dump_posix_users, dump_posix_groups, \
-    dump_hosts_ou, dump_hosts_with_partials, dump_sudoers_ou
+    dump_hosts_ou, dump_hosts_with_partials, dump_sudoers_ou, \
+    dump_sudoers_defaults
 from stringsync import fixtures as f
 from stringsync.ldif_writers import BuildDnLdifWriter, build_dn
 
@@ -660,6 +661,24 @@ class TestMysql2Ldif(object):
                structuralObjectClass: organizationalUnit
 
                """), ldif.ldif())
+
+    def test_dump_sudoers_defaults(self):
+        ldif = StrLdif()
+        # just to make sure that we're wrapping, as that's what will
+        # happen
+        sudoers_ldif = build_dn('ou=sudoers,dc=org-one-infra,dc=net', ldif)
+        # should not return a new ldif
+        eq_(None,
+            dump_sudoers_defaults(sudoers_ldif))
+        eq_(dd("""\
+               dn: cn=defaults,ou=sudoers,dc=org-one-infra,dc=net
+               cn: defaults
+               description: Default sudo options
+               objectClass: sudoRole
+               structuralObjectClass: sudoRole
+
+               """), ldif.ldif())
+
 
 
 

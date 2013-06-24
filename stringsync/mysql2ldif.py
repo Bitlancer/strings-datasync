@@ -339,6 +339,20 @@ def dump_sudoers_ou(ldif_writer):
    return build_dn('ou=sudoers', ldif_writer)
 
 
+def dump_sudoers_defaults(ldif_writer):
+   """
+   Dump the hard-coded sudoers defaults.
+
+   As this is a leaf entry, don't return a new ldif writer.
+   """
+   ldif_writer.unparse(
+      dn='cn=defaults',
+      attrs=dict(cn=['defaults'],
+                 structuralObjectClass=['sudoRole'],
+                 objectClass=['sudoRole'],
+                 description=['Default sudo options']))
+
+
 def _dump_dc_objects(device_fqdns_addys, ldif_writer):
    dc_objects = set()
    for fqdn, addy in device_fqdns_addys:
