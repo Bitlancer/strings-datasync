@@ -27,7 +27,8 @@ TABLES = [
     'device_dns',
     'sudo',
     'sudo_attribute',
-    'team_role'
+    'team_role',
+    'hiera'
 ]
 
 
@@ -678,6 +679,37 @@ def f_sudo_1_opt_2(conn):
                             value='sudo_opt_2')
 
 
+def f_hiera_pdns_passwd(conn):
+    return f_hiera(conn,
+                   organization_id=f_organization_1(conn),
+                   hiera_key='production/common',
+                   var='ldap_pdns_password',
+                   val='ldap pdns passwd!')
+
+
+def f_hiera_pdns_username(conn):
+    return f_hiera(conn,
+                   organization_id=f_organization_1(conn),
+                   hiera_key='production/common',
+                   var='ldap_pdns_username',
+                   val='pdns')
+
+
+def f_hiera_puppet_passwd(conn):
+    return f_hiera(conn,
+                   organization_id=f_organization_1(conn),
+                   hiera_key='production/common',
+                   var='ldap_puppet_password',
+                   val='ldap puppet passwd!')
+
+
+def f_hiera_puppet_username(conn):
+    return f_hiera(conn,
+                   organization_id=f_organization_1(conn),
+                   hiera_key='production/common',
+                   var='ldap_puppet_username',
+                   val='puppet')
+
 
 @fixture
 def f_organization(conn, name=None, short_name=None, is_disabled=False):
@@ -948,6 +980,21 @@ def f_team_role(conn, organization_id, team_id, role_id):
                               dict(organization_id=organization_id,
                                    team_id=team_id,
                                    role_id=role_id))
+
+
+@fixture
+def f_hiera(conn, organization_id, hiera_key, var, val):
+    sql = """
+          INSERT INTO hiera
+            (organization_id, hiera_key, var, val)
+              VALUES
+            (%(organization_id)s, %(hiera_key)s, %(var)s, %(val)s)
+          """
+    return _insert_and_get_id(conn, sql,
+                              dict(organization_id=organization_id,
+                                   hiera_key=hiera_key,
+                                   var=var,
+                                   val=val))
 
 
 def _insert_and_get_id(conn, sql, args):

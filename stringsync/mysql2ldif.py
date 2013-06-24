@@ -3,6 +3,8 @@ Dump the strings mysql data for a given organization to a full ldif.
 """
 
 from collections import defaultdict
+import itertools
+import re
 
 from stringsync.db import select_row, select_rows, select_val
 from stringsync.ldif_writers import build_dn, full_dn
@@ -372,6 +374,154 @@ def dump_sudoers(organization_id, db, ldif_writer):
                     sudoOption=sorted(sudo['sudo_option']),
                     description=sudo['description'],
                     sudoUser=sorted(sudo['sudo_user'])))
+
+
+def dump_ldap_ou(ldif_writer):
+   """
+   Dump the ldap ou and return an extended ldif_writer for further
+   entries.
+   """
+   ldif_writer.unparse(
+      dn='ou=ldap',
+      attrs=dict(ou=['ldap'],
+                 structuralObjectClass=['organizationalUnit'],
+                 objectClass=['organizationalUnit']))
+   return build_dn('ou=ldap', ldif_writer)
+
+
+def dump_ldap_groups_ou(ldif_writer):
+   """
+   Dump the ldap groups ou and return an extended ldif_writer for
+   further entries.
+   """
+   ldif_writer.unparse(
+      dn='ou=groups',
+      attrs=dict(ou=['groups'],
+                 structuralObjectClass=['organizationalUnit'],
+                 objectClass=['organizationalUnit']))
+   return build_dn('ou=groups', ldif_writer)
+
+
+def dump_ldap_ro_group(organization_id, member_dn, db, ldif_writer):
+   """
+   Dump the ro ldap group with the members.
+
+   As this is a leaf entry, don't return a new ldif_writer.
+
+   - `member_dn`: e.g ou=users,ou=ldap,.... is appended to each member
+     uid when writing the group.
+   """
+   ldif_writer.unparse(
+      dn='cn=ro',
+      attrs=dict(cn=['ro'],
+                 objectClass=['groupOfNames'],
+                 structuralObjectClass=['groupOfNames'],
+                 member=['uid=%s,%s' % (ldap_name_and_password[0], member_dn)
+                         for ldap_name_and_password
+                         in _select_ldap_names_and_passwords(organization_id,
+                                                             db)]))
+
+
+def dump_ldap_users_ou(ldif_writer):
+   """
+   Dump the ou=users in ldap, and return an extended ldif writer for
+   the user entries.
+   """
+   ldif_writer.unparse(
+      dn='ou=users',
+      attrs=dict(ou=['users'],
+                 structuralObjectClass=['organizationalUnit'],
+                 objectClass=['organizationalUnit']))
+   return build_dn('ou=users', ldif_writer)
+
+
+def dump_ldap_users(organization_id, db, ldif_writer):
+   """
+   Dump the entries under ou=users,ou=ldap.
+
+   Since these are leaf entries, don't return an ldif_writer for
+   extended writing.
+   """
+   unames_and_passwords = _select_ldap_names_and_passwords(organization_id,
+                                                           db)
+   for uname, password in unames_and_passwords:
+      ldif_writer.unparse(
+         dn='uid=%s' % uname,
+         attrs=dict(uid=[uname],
+                    objectClass=['inetOrgPerson'],
+                    structuralObjectClass=['inetOrgPerson'],
+                    cn=['%s user' % uname],
+                    sn=['%s user' % uname],
+                    userPassword=[password]))
+
+
+def _select_ldap_names_and_passwords(organization_id, db):
+   select = """
+            SELECT var,
+                   val
+              FROM hiera
+              WHERE (
+                      var LIKE 'ldap_%%_username'
+                        OR
+                      var LIKE 'ldap_%%_password'
+                    )
+                      AND
+                    organization_id = %(organization_id)s
+            """
+   rows = select_rows(db, select, dict(organization_id=organization_id))
+   rows = [(_extract_ldap_grist(var), var, val)
+           for var, val
+           in rows]
+   rows.sort()
+
+   users_and_passwords = []
+
+   for ldap_grist, grouped_rows in  itertools.groupby(rows, lambda r: r[0]):
+      if ldap_grist is None:
+         raise Exception("Could not extract ldap grist from vars %s" %
+                         list(grouped_rows))
+      ldap_password = None
+      ldap_username = None
+
+      for _grist, var, val in grouped_rows:
+         if var.endswith('_username'):
+            if ldap_username is not None:
+               raise Exception("Two usernames for ldap grist %s" % ldap_grist)
+            ldap_username = val
+         if var.endswith('_password'):
+            if ldap_password is not None:
+               raise Exception("Two passwords for ldap grist %s" % ldap_grist)
+            ldap_password = val
+      if ldap_password is None:
+         raise Exception("No password for ldap grist %s" % ldap_grist)
+      if ldap_username is None:
+         raise Exception("No username for ldap grist %s" % ldap_grist)
+      users_and_passwords.append((ldap_username, ldap_password))
+
+   # make this predictable and easier to test
+   users_and_passwords.sort()
+
+   return users_and_passwords
+
+
+LDAP_GRIST_RE = re.compile('^ldap_([^_]+)_[^_]+$')
+
+
+def _extract_ldap_grist(ldap_str):
+   """
+   For values of the form:
+
+   ldap_<something>_<something2>
+
+   extract <something>
+
+   Return None if extraction couldn't be done.
+   """
+   m = LDAP_GRIST_RE.match(ldap_str)
+   if m:
+      return m.group(1)
+   else:
+      return None
 
 
 def _select_sudoers_info(organization_id, db):

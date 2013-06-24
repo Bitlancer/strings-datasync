@@ -13,7 +13,9 @@ from stringsync.mysql2ldif import organization_dn, NoLdapDomain, \
     dump_data_centers, dump_devices, dump_posix_ou, dump_posix_groups_ou, \
     dump_posix_users_ou, dump_posix_users, dump_posix_groups, \
     dump_hosts_ou, dump_hosts_with_partials, dump_sudoers_ou, \
-    dump_sudoers_defaults, dump_sudoers
+    dump_sudoers_defaults, dump_sudoers, dump_ldap_ou, \
+    dump_ldap_groups_ou, dump_ldap_ro_group, dump_ldap_users_ou, \
+    dump_ldap_users
 from stringsync import fixtures as f
 from stringsync.ldif_writers import BuildDnLdifWriter, build_dn
 
@@ -727,6 +729,121 @@ class TestMysql2Ldif(object):
 
                """), ldif.ldif())
 
+    def test_dump_ldap_ou(self):
+        ldif = StrLdif()
+        # just to make sure that we're wrapping, as that's what will
+        # happen
+        org_ldif = build_dn('dc=org-one-infra,dc=net', ldif)
+        # make sure we return a modified ldif writer for further use
+        new_ldif = dump_ldap_ou(org_ldif)
+        _check_dn_ldif_writer(new_ldif, 'ou=ldap')
+        eq_(dd("""\
+               dn: ou=ldap,dc=org-one-infra,dc=net
+               objectClass: organizationalUnit
+               ou: ldap
+               structuralObjectClass: organizationalUnit
+
+               """), ldif.ldif())
+
+    def test_dump_ldap_groups_ou(self):
+        ldif = StrLdif()
+        # just to make sure that we're wrapping, as that's what will
+        # happen
+        ldap_ldif = build_dn('ou=ldap,dc=org-one-infra,dc=net', ldif)
+        # make sure we return a modified ldif writer for further use
+        new_ldif = dump_ldap_groups_ou(ldap_ldif)
+        _check_dn_ldif_writer(new_ldif, 'ou=groups')
+        eq_(dd("""\
+               dn: ou=groups,ou=ldap,dc=org-one-infra,dc=net
+               objectClass: organizationalUnit
+               ou: groups
+               structuralObjectClass: organizationalUnit
+
+               """), ldif.ldif())
+
+    def test_dump_ldap_ro_group(self):
+        org_1 = f.f_organization_1(self.conn)
+
+        h_pdns_uname = f.f_hiera_pdns_username(self.conn)
+        h_pdns_passwd = f.f_hiera_pdns_passwd(self.conn)
+        h_puppet_uname = f.f_hiera_puppet_username(self.conn)
+        h_puppet_passwd = f.f_hiera_puppet_passwd(self.conn)
+
+        ldif = StrLdif()
+        # just to make sure that we're wrapping, as that's what will
+        # happen
+        groups_ldif = build_dn('ou=groups,ou=ldap,dc=org-one-infra,dc=net',
+                               ldif)
+        # this will have to supplied externally in the moment
+        member_dn = "ou=users,ou=ldap,dc=org-one-infra,dc=net"
+        # should not return a new ldif
+        eq_(None,
+            dump_ldap_ro_group(org_1,
+                               member_dn=member_dn,
+                               db=self.conn,
+                               ldif_writer=groups_ldif))
+        eq_(dd("""\
+               dn: cn=ro,ou=groups,ou=ldap,dc=org-one-infra,dc=net
+               cn: ro
+               member: uid=pdns,ou=users,ou=ldap,dc=org-one-infra,dc=net
+               member: uid=puppet,ou=users,ou=ldap,dc=org-one-infra,dc=net
+               objectClass: groupOfNames
+               structuralObjectClass: groupOfNames
+
+               """), ldif.ldif())
+
+    def test_dump_ldap_users_ou(self):
+        ldif = StrLdif()
+        # just to make sure that we're wrapping, as that's what will
+        # happen
+        ldap_ldif = build_dn('ou=ldap,dc=org-one-infra,dc=net', ldif)
+        # make sure we return a modified ldif writer for further use
+        new_ldif = dump_ldap_users_ou(ldap_ldif)
+        _check_dn_ldif_writer(new_ldif, 'ou=users')
+        eq_(dd("""\
+               dn: ou=users,ou=ldap,dc=org-one-infra,dc=net
+               objectClass: organizationalUnit
+               ou: users
+               structuralObjectClass: organizationalUnit
+
+               """), ldif.ldif())
+
+    def test_dump_ldap_users(self):
+        org_1 = f.f_organization_1(self.conn)
+
+        h_pdns_uname = f.f_hiera_pdns_username(self.conn)
+        h_pdns_passwd = f.f_hiera_pdns_passwd(self.conn)
+        h_puppet_uname = f.f_hiera_puppet_username(self.conn)
+        h_puppet_passwd = f.f_hiera_puppet_passwd(self.conn)
+
+        ldif = StrLdif()
+        # just to make sure that we're wrapping, as that's what will
+        # happen
+        users_ldif = build_dn('ou=users,ou=ldap,dc=org-one-infra,dc=net',
+                              ldif)
+        # should not return a new ldif
+        eq_(None,
+            dump_ldap_users(org_1,
+                            db=self.conn,
+                            ldif_writer=users_ldif))
+        eq_(dd("""\
+               dn: uid=pdns,ou=users,ou=ldap,dc=org-one-infra,dc=net
+               cn: pdns user
+               objectClass: inetOrgPerson
+               sn: pdns user
+               structuralObjectClass: inetOrgPerson
+               uid: pdns
+               userPassword: ldap pdns passwd!
+
+               dn: uid=puppet,ou=users,ou=ldap,dc=org-one-infra,dc=net
+               cn: puppet user
+               objectClass: inetOrgPerson
+               sn: puppet user
+               structuralObjectClass: inetOrgPerson
+               uid: puppet
+               userPassword: ldap puppet passwd!
+
+               """), ldif.ldif())
 
 
 def _check_dn_ldif_writer(ldif, dn):
