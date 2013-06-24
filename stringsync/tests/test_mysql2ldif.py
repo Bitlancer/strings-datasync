@@ -406,6 +406,19 @@ class TestMysql2Ldif(object):
         fqdn_5 = f.f_device_5_ex_fqdn(self.conn)
         d_6 = f.f_device_6(self.conn)
         fqdn_6 = f.f_device_6_ex_fqdn(self.conn)
+        d_7 = f.f_device_7(self.conn)
+        fqdn_7 = f.f_device_7_ex_fqdn(self.conn)
+
+        # connect the teams to roles to make sure that devices can be
+        # accessed that way (device 7 has role 3)
+        r_7 = f.f_role_3(self.conn)
+        # connect team one to role 3
+        t_1_r_3 = f.f_team_1_role_3(self.conn)
+
+        # but that connecting a disabled team to role 4 doesn't grant
+        # access to the prohibited device_8
+        r_4 = f.f_role_4(self.conn)
+        dt_r_4 = f.f_disabled_team_role_4(self.conn)
 
         disabled_user = f.f_disabled_user(self.conn)
         shell_disabled = f.f_disabled_user_posix_login_shell(self.conn)
@@ -440,6 +453,7 @@ class TestMysql2Ldif(object):
                host: device_five.data_center_two.org-one-infra.net
                host: device_four.data_center_two.org-one-infra.net
                host: device_one.data_center_one.org-one-infra.net
+               host: device_seven.data_center_one.org-one-infra.net
                host: device_six.data_center_two.org-one-infra.net
                loginShell: /bin/user_1_shell
                objectClass: inetOrgPerson

@@ -26,7 +26,8 @@ TABLES = [
     'team_device',
     'device_dns',
     'sudo',
-    'sudo_attribute'
+    'sudo_attribute',
+    'team_role'
 ]
 
 
@@ -299,6 +300,54 @@ def f_role_1(conn):
                   name="role_one")
 
 
+def f_role_3(conn):
+    return f_role(conn,
+                  organization_id=f_organization_1(conn),
+                  name="role_three")
+
+
+def f_role_4(conn):
+    return f_role(conn,
+                  organization_id=f_organization_1(conn),
+                  name="role_four")
+
+
+def f_team_1_role_3(conn):
+    return f_team_role(conn,
+                       organization_id=f_organization_1(conn),
+                       team_id=f_team_1(conn),
+                       role_id=f_role_3(conn))
+
+
+def f_disabled_team_role_4(conn):
+    return f_team_role(conn,
+                       organization_id=f_organization_1(conn),
+                       team_id=f_disabled_team(conn),
+                       role_id=f_role_4(conn))
+
+
+def f_formation_7(conn):
+    return f_formation(conn,
+                       organization_id=f_organization_1(conn),
+                       name="formation_seven")
+
+
+def f_device_7(conn):
+    return f_device(conn,
+                    organization_id=f_organization_1(conn),
+                    name="device_seven",
+                    role_id=f_role_3(conn),
+                    formation_id=f_formation_7(conn))
+
+
+def f_device_8(conn):
+    return f_device(conn,
+                    organization_id=f_organization_1(conn),
+                    name="device_eight",
+                    role_id=f_role_4(conn),
+                    formation_id=f_formation_7(conn))
+
+
 def f_device_1(conn):
     return f_device(conn,
                     organization_id=f_organization_1(conn),
@@ -314,6 +363,24 @@ def f_device_1_ex_fqdn(conn):
         device_id=f_device_1(conn),
         var='dns.external.fqdn',
         val='device_one.data_center_one.org-one-infra.net')
+
+
+def f_device_7_ex_fqdn(conn):
+    return f_device_attribute(
+        conn,
+        organization_id=f_organization_1(conn),
+        device_id=f_device_7(conn),
+        var='dns.external.fqdn',
+        val='device_seven.data_center_one.org-one-infra.net')
+
+
+def f_device_8_ex_fqdn(conn):
+    return f_device_attribute(
+        conn,
+        organization_id=f_organization_1(conn),
+        device_id=f_device_8(conn),
+        var='dns.external.fqdn',
+        val='device_eight.data_center_one.org-one-infra.net')
 
 
 def f_device_1_int_fqdn(conn):
@@ -867,6 +934,20 @@ def f_sudo_attribute(conn, organization_id, sudo_id, name, value):
                                    name=name,
                                    value=value,
                                    sudo_id=sudo_id))
+
+
+@fixture
+def f_team_role(conn, organization_id, team_id, role_id):
+    sql = """
+          INSERT INTO team_role
+            (organization_id, team_id, role_id)
+          VALUES
+            (%(organization_id)s, %(team_id)s, %(role_id)s)
+          """
+    return _insert_and_get_id(conn, sql,
+                              dict(organization_id=organization_id,
+                                   team_id=team_id,
+                                   role_id=role_id))
 
 
 def _insert_and_get_id(conn, sql, args):

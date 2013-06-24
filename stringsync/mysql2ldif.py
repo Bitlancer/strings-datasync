@@ -628,7 +628,9 @@ def _hosts_for_posix_user(user_id, organization_id, db):
    #
    # team access to an application (which carries to formations, which
    # carries to devices)
-
+   #
+   # team to role to device
+   #
    selects = ["""
               SELECT da.val
                 FROM user u INNER JOIN user_team ut
@@ -681,6 +683,26 @@ def _hosts_for_posix_user(user_id, organization_id, db):
                        ON td.team_id = t.id
                      INNER JOIN device_attribute da
                        ON da.device_id = td.device_id
+               WHERE t.is_disabled IS FALSE
+                       AND
+                     t.organization_id = %(organization_id)s
+                       AND
+                     u.id = %(user_id)s
+                       AND
+                     da.var = 'dns.external.fqdn'
+              """,
+              """
+              SELECT da.val
+                FROM user u INNER JOIN user_team ut
+                       ON u.id = ut.user_id
+                     INNER JOIN team t
+                       ON ut.team_id = t.id
+                     INNER JOIN team_role tr
+                       ON tr.team_id = t.id
+                     INNER JOIN device d
+                       ON tr.role_id = d.role_id
+                     INNER JOIN device_attribute da
+                       ON da.device_id = d.id
                WHERE t.is_disabled IS FALSE
                        AND
                      t.organization_id = %(organization_id)s
