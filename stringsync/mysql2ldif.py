@@ -2,6 +2,8 @@
 Dump the strings mysql data for a given organization to a full ldif.
 """
 
+from collections import defaultdict
+
 from stringsync.db import select_row, select_rows, select_val
 from stringsync.ldif_writers import build_dn, full_dn
 
@@ -298,6 +300,100 @@ def dump_hosts_ou(ldif_writer):
                  objectClass=['organizationalUnit'],
                  structuralObjectClass=['organizationalUnit']))
    return build_dn('ou=hosts', ldif_writer)
+
+
+def dump_hosts_with_partials(organization_id, db, ldif_writer):
+   """
+   Dump the host dns records, including the partial domains building
+   up to the full hosts.
+
+   Since these are leaf entries, don't return an extended ldif.
+   """
+   dns_attr = _select_dns_int_config_attr(organization_id, db)
+   if dns_attr is None:
+      raise Exception("Dns attr in config was None, can't gen hosts.")
+   device_fqdns_addys = _select_device_info_for_hosts(dns_attr,
+                                                      organization_id,
+                                                      db)
+   device_fqdns_addys.sort()
+   _dump_dc_objects(device_fqdns_addys, ldif_writer)
+   for fqdn, addy in device_fqdns_addys:
+      ldif_writer.unparse(
+         dn=','.join(['dc=%s' % s for s in fqdn.split('.')]),
+         attrs=dict(objectClass=['domainRelatedObject', 'dNSDomain'],
+                    structuralObjectClass=['dNSDomain'],
+                    dc=[fqdn.split('.')[0]],
+                    associatedDomain=[fqdn],
+                    aRecord=[addy]))
+
+
+def _dump_dc_objects(device_fqdns_addys, ldif_writer):
+   dc_objects = set()
+   for fqdn, addy in device_fqdns_addys:
+      for dc_object in _dc_objects_from_fqdn(fqdn):
+         dc_objects.add(tuple(dc_object))
+
+   dc_objects = list(dc_objects)
+   # make it easy to test this b/c determinable
+   dc_objects.sort()
+
+   for dc_object in dc_objects:
+      dc = dc_object[0]
+      ldif_writer.unparse(
+         dn=','.join(['dc=%s' % d for d in dc_object]),
+         attrs=dict(dc=[dc],
+                    objectClass=['dcObject', 'dNSDomain'],
+                    structuralObjectClass=['dNSDomain']))
+
+
+def _dc_objects_from_fqdn(fqdn):
+   segs = fqdn.split('.')
+   segs.reverse()
+   for seg_len in range(1, len(segs)):
+      yield reversed(segs[:seg_len])
+
+
+def _select_device_info_for_hosts(dns_attr, organization_id, db):
+   select = """
+            SELECT d.id,
+                   da.var,
+                   da.val
+              FROM device d INNER JOIN device_attribute da
+                     ON d.id = da.device_id
+              WHERE d.organization_id = %(organization_id)s
+                      AND
+                    da.var IN ('dns.internal.fqdn', '{dns_attr}')
+            """.format(dns_attr=dns_attr)
+   rows = select_rows(db, select, dict(organization_id=organization_id))
+
+   devices = defaultdict(dict)
+   for (device_id, var, val) in rows:
+      if var == 'dns.internal.fqdn':
+         devices[device_id]['fqdn'] = val
+      elif var == dns_attr:
+         devices[device_id]['dns'] = val
+      else:
+         raise Exception("Bad var name %s" % var)
+
+   device_infos = []
+   for device_id, attrs in devices.items():
+      if len(attrs) != 2:
+         raise Exception("Device id %s only had host attrs %s" %
+                         (device_id, attrs))
+      device_infos.append((attrs['fqdn'], attrs['dns']))
+
+   return device_infos
+
+
+def _select_dns_int_config_attr(organization_id, db):
+   select = """
+            SELECT val
+              FROM config
+              WHERE var = 'dns.internal.network_attribute'
+                      AND
+                    organization_id = %(organization_id)s
+            """
+   return select_val(db, select, dict(organization_id=organization_id))
 
 
 def _user_ids_and_names_for_posix_groups(organization_id, db):

@@ -12,7 +12,7 @@ from stringsync.mysql2ldif import organization_dn, NoLdapDomain, \
     dump_people_users_ou, dump_people_users, dump_nodes_ou, \
     dump_data_centers, dump_devices, dump_posix_ou, dump_posix_groups_ou, \
     dump_posix_users_ou, dump_posix_users, dump_posix_groups, \
-    dump_hosts_ou
+    dump_hosts_ou, dump_hosts_with_partials
 from stringsync import fixtures as f
 from stringsync.ldif_writers import BuildDnLdifWriter, build_dn
 
@@ -549,6 +549,90 @@ class TestMysql2Ldif(object):
                structuralObjectClass: organizationalUnit
 
                """), ldif.ldif())
+
+    def test_dump_hosts_with_partials(self):
+        org_1 = f.f_organization_1(self.conn)
+
+        conf = f.f_internal_dns_attr_config_1(self.conn)
+
+        d_1 = f.f_device_1(self.conn)
+        d_2 = f.f_device_2(self.conn)
+
+        int_add_d_1 = f.f_device_1_int_addr(self.conn)
+        int_add_d_2 = f.f_device_2_int_addr(self.conn)
+
+        d1_int_fqdn = f.f_device_1_int_fqdn(self.conn)
+        d2_int_fqdn = f.f_device_2_int_fqdn(self.conn)
+
+        ldif = StrLdif()
+        # just to make sure that we're wrapping, as that's what will
+        # happen
+        hosts_ldif = build_dn('ou=hosts,dc=org-one-infra,dc=net', ldif)
+        # make sure we don't return a new ldif
+        eq_(None,
+            dump_hosts_with_partials(org_1, self.conn, hosts_ldif))
+        eq_(dd(
+          """\
+          dn: dc=data_center_one,dc=org-one-infra,dc=net,ou=hosts,dc=org-one-infra,dc=
+           net
+          dc: data_center_one
+          objectClass: dcObject
+          objectClass: dNSDomain
+          structuralObjectClass: dNSDomain
+
+          dn: dc=data_center_two,dc=org-one-infra,dc=net,ou=hosts,dc=org-one-infra,dc=
+           net
+          dc: data_center_two
+          objectClass: dcObject
+          objectClass: dNSDomain
+          structuralObjectClass: dNSDomain
+
+          dn: dc=int,dc=data_center_one,dc=org-one-infra,dc=net,ou=hosts,dc=org-one-in
+           fra,dc=net
+          dc: int
+          objectClass: dcObject
+          objectClass: dNSDomain
+          structuralObjectClass: dNSDomain
+
+          dn: dc=int,dc=data_center_two,dc=org-one-infra,dc=net,ou=hosts,dc=org-one-in
+           fra,dc=net
+          dc: int
+          objectClass: dcObject
+          objectClass: dNSDomain
+          structuralObjectClass: dNSDomain
+
+          dn: dc=net,ou=hosts,dc=org-one-infra,dc=net
+          dc: net
+          objectClass: dcObject
+          objectClass: dNSDomain
+          structuralObjectClass: dNSDomain
+
+          dn: dc=org-one-infra,dc=net,ou=hosts,dc=org-one-infra,dc=net
+          dc: org-one-infra
+          objectClass: dcObject
+          objectClass: dNSDomain
+          structuralObjectClass: dNSDomain
+
+          dn: dc=device_one,dc=int,dc=data_center_one,dc=org-one-infra,dc=net,ou=hosts
+           ,dc=org-one-infra,dc=net
+          aRecord: 192.168.1.101
+          associatedDomain: device_one.int.data_center_one.org-one-infra.net
+          dc: device_one
+          objectClass: domainRelatedObject
+          objectClass: dNSDomain
+          structuralObjectClass: dNSDomain
+
+          dn: dc=device_two,dc=int,dc=data_center_two,dc=org-one-infra,dc=net,ou=hosts
+           ,dc=org-one-infra,dc=net
+          aRecord: 192.168.1.102
+          associatedDomain: device_two.int.data_center_two.org-one-infra.net
+          dc: device_two
+          objectClass: domainRelatedObject
+          objectClass: dNSDomain
+          structuralObjectClass: dNSDomain
+
+          """), ldif.ldif())
+
 
 
 def _check_dn_ldif_writer(ldif, dn):

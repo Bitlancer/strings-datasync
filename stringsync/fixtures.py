@@ -93,6 +93,14 @@ def f_ldap_domain_config_2(conn):
                     var='ldap.domain',
                     val='org-one-infra-2.net')
 
+
+def f_internal_dns_attr_config_1(conn):
+    return f_config(conn,
+                    organization_id=f_organization_1(conn),
+                    var='dns.internal.network_attribute',
+                    val='implementation.address.private.4')
+
+
 def f_team_1(conn):
     return f_team(conn,
                   organization_id=f_organization_1(conn),
@@ -303,6 +311,42 @@ def f_device_1_ex_fqdn(conn):
         device_id=f_device_1(conn),
         var='dns.external.fqdn',
         val='device_one.data_center_one.org-one-infra.net')
+
+
+def f_device_1_int_fqdn(conn):
+    return f_device_attribute(
+        conn,
+        organization_id=f_organization_1(conn),
+        device_id=f_device_1(conn),
+        var='dns.internal.fqdn',
+        val='device_one.int.data_center_one.org-one-infra.net')
+
+
+def f_device_2_int_fqdn(conn):
+    return f_device_attribute(
+        conn,
+        organization_id=f_organization_1(conn),
+        device_id=f_device_2(conn),
+        var='dns.internal.fqdn',
+        val='device_two.int.data_center_two.org-one-infra.net')
+
+
+def f_device_1_int_addr(conn):
+    return f_device_attribute(
+        conn,
+        organization_id=f_organization_1(conn),
+        device_id=f_device_1(conn),
+        var='implementation.address.private.4',
+        val='192.168.1.101')
+
+
+def f_device_2_int_addr(conn):
+    return f_device_attribute(
+        conn,
+        organization_id=f_organization_1(conn),
+        device_id=f_device_2(conn),
+        var='implementation.address.private.4',
+        val='192.168.1.102')
 
 
 def f_formation_2(conn):
