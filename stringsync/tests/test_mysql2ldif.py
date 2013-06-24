@@ -13,7 +13,7 @@ from stringsync.mysql2ldif import organization_dn, NoLdapDomain, \
     dump_data_centers, dump_devices, dump_posix_ou, dump_posix_groups_ou, \
     dump_posix_users_ou, dump_posix_users, dump_posix_groups, \
     dump_hosts_ou, dump_hosts_with_partials, dump_sudoers_ou, \
-    dump_sudoers_defaults
+    dump_sudoers_defaults, dump_sudoers
 from stringsync import fixtures as f
 from stringsync.ldif_writers import BuildDnLdifWriter, build_dn
 
@@ -679,6 +679,39 @@ class TestMysql2Ldif(object):
 
                """), ldif.ldif())
 
+    def test_dump_sudoers(self):
+        org_1 = f.f_organization_1(self.conn)
+
+        s = f.f_sudo_1(self.conn)
+        s_c1 = f.f_sudo_1_cmd_ls(self.conn)
+        s_c1 = f.f_sudo_1_cmd_mv(self.conn)
+        s_r1 = f.f_sudo_1_run_as_bob(self.conn)
+        s_r1 = f.f_sudo_1_run_as_jim(self.conn)
+        s_o1 = f.f_sudo_1_opt_1(self.conn)
+        s_o2 = f.f_sudo_1_opt_2(self.conn)
+
+        ldif = StrLdif()
+        # just to make sure that we're wrapping, as that's what will
+        # happen
+        sudoers_ldif = build_dn('ou=sudoers,dc=org-one-infra,dc=net', ldif)
+        # should not return a new ldif
+        eq_(None,
+            dump_sudoers(org_1, self.conn, sudoers_ldif))
+        eq_(dd("""\
+               dn: cn=sudo_role_1,ou=sudoers,dc=org-one-infra,dc=net
+               cn: sudo_role_1
+               description: sudo_role_1 sudo role
+               objectClass: sudoRole
+               structuralObjectClass: sudoRole
+               sudoCommand: ls
+               sudoCommand: mv
+               sudoHost: ALL
+               sudoOption: sudo_opt_1
+               sudoOption: sudo_opt_2
+               sudoRunAs: bob
+               sudoRunAs: jim
+
+               """), ldif.ldif())
 
 
 

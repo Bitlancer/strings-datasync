@@ -353,6 +353,84 @@ def dump_sudoers_defaults(ldif_writer):
                  description=['Default sudo options']))
 
 
+def dump_sudoers(organization_id, db, ldif_writer):
+   """
+   Dump sudoers entries.
+
+   Since these are leaf entries, do not return an ldif writer for
+   extended writing.
+   """
+   for sudo in _select_sudoers_info(organization_id, db):
+      ldif_writer.unparse(
+         dn='cn=%s' % sudo['sudo_role'],
+         attrs=dict(cn=[sudo['sudo_role']],
+                    objectClass=['sudoRole'],
+                    structuralObjectClass=['sudoRole'],
+                    sudoCommand=sorted(sudo['sudo_command']),
+                    sudoHost=sorted(sudo['sudo_host']),
+                    sudoRunAs=sorted(sudo['sudo_run_as']),
+                    sudoOption=sorted(sudo['sudo_option']),
+                    description=sudo['description'],
+                    sudoUser=sorted(sudo['sudo_user'])))
+
+
+def _select_sudoers_info(organization_id, db):
+   sudo_ids_names = _select_sudo_ids_names(organization_id, db)
+   # dicts by id of the sudo
+   sudos = defaultdict(lambda: defaultdict(list))
+   for sudo_id, name in sudo_ids_names:
+      sudos[sudo_id]['sudo_role'] = name
+      # this is defaulted, always
+      sudos[sudo_id]['sudo_host'].append('ALL')
+      # this is generated, always
+      sudos[sudo_id]['description'].append('%s sudo role' % name)
+      sudos[sudo_id]['sudo_user'] = _select_sudo_users(organization_id,
+                                                       sudo_id,
+                                                       db)
+
+      for a_name, a_value in _select_sudo_attrs(sudo_id, db):
+         if a_name == 'sudoCommand':
+            sudos[sudo_id]['sudo_command'].append(a_value)
+         elif a_name == 'sudoRunAs':
+            sudos[sudo_id]['sudo_run_as'].append(a_value)
+         elif a_name == 'sudoOption':
+            sudos[sudo_id]['sudo_option'].append(a_value)
+         else:
+            raise Exception("Did not recognize sudo attr %s" % a_name)
+
+   sudos = [(s['sudo_role'], s) for s in sudos.values()]
+   # sort to make it easier to test
+   sudos.sort()
+   sudos = [s[1] for s in sudos]
+   return sudos
+
+
+def _select_sudo_users(organization_id, sudo_id, db):
+   # here you are edmund
+   return []
+
+
+def _select_sudo_attrs(sudo_id, db):
+   select = """
+            SELECT name,
+                   value
+              FROM sudo_attribute
+              WHERE sudo_id = %(sudo_id)s
+            """
+   return select_rows(db, select, dict(sudo_id=sudo_id))
+
+
+def _select_sudo_ids_names(organization_id, db):
+   # note that is_hidden is about display and not consulted here
+   select = """
+            SELECT id,
+                   name
+              FROM sudo
+              WHERE organization_id = %(organization_id)s
+            """
+   return select_rows(db, select, dict(organization_id=organization_id))
+
+
 def _dump_dc_objects(device_fqdns_addys, ldif_writer):
    dc_objects = set()
    for fqdn, addy in device_fqdns_addys:

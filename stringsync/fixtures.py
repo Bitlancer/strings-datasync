@@ -24,7 +24,9 @@ TABLES = [
     'team_application',
     'application_formation',
     'team_device',
-    'device_dns'
+    'device_dns',
+    'sudo',
+    'sudo_attribute'
 ]
 
 
@@ -555,6 +557,61 @@ def f_device_dns_alt_device_1(conn):
         name="alt_device_one.int.data_center_one.org-one-infra.net")
 
 
+def f_sudo_1(conn):
+    return f_sudo(conn,
+                  organization_id=f_organization_1(conn),
+                  name='sudo_role_1')
+
+
+def f_sudo_1_cmd_ls(conn):
+    return f_sudo_attribute(conn,
+                            organization_id=f_organization_1(conn),
+                            sudo_id=f_sudo_1(conn),
+                            name='sudoCommand',
+                            value='ls')
+
+
+def f_sudo_1_cmd_mv(conn):
+    return f_sudo_attribute(conn,
+                            organization_id=f_organization_1(conn),
+                            sudo_id=f_sudo_1(conn),
+                            name='sudoCommand',
+                            value='mv')
+
+
+def f_sudo_1_run_as_bob(conn):
+    return f_sudo_attribute(conn,
+                            organization_id=f_organization_1(conn),
+                            sudo_id=f_sudo_1(conn),
+                            name='sudoRunAs',
+                            value='bob')
+
+
+def f_sudo_1_run_as_jim(conn):
+    return f_sudo_attribute(conn,
+                            organization_id=f_organization_1(conn),
+                            sudo_id=f_sudo_1(conn),
+                            name='sudoRunAs',
+                            value='jim')
+
+
+def f_sudo_1_opt_1(conn):
+    return f_sudo_attribute(conn,
+                            organization_id=f_organization_1(conn),
+                            sudo_id=f_sudo_1(conn),
+                            name='sudoOption',
+                            value='sudo_opt_1')
+
+
+def f_sudo_1_opt_2(conn):
+    return f_sudo_attribute(conn,
+                            organization_id=f_organization_1(conn),
+                            sudo_id=f_sudo_1(conn),
+                            name='sudoOption',
+                            value='sudo_opt_2')
+
+
+
 @fixture
 def f_organization(conn, name=None, short_name=None, is_disabled=False):
     sql = """INSERT INTO organization
@@ -782,6 +839,34 @@ def f_device_dns(conn, organization_id, device_id, name):
                               dict(organization_id=organization_id,
                                    device_id=device_id,
                                    name=name))
+
+@fixture
+def f_sudo(conn, organization_id, name, is_hidden=False):
+    sql = """
+          INSERT INTO sudo
+            (organization_id, name, is_hidden)
+              VALUES
+            (%(organization_id)s, %(name)s, %(is_hidden)s)
+          """
+    return _insert_and_get_id(conn, sql,
+                              dict(organization_id=organization_id,
+                                   name=name,
+                                   is_hidden=is_hidden))
+
+
+@fixture
+def f_sudo_attribute(conn, organization_id, sudo_id, name, value):
+    sql = """
+          INSERT INTO sudo_attribute
+            (organization_id, sudo_id, name, value)
+              VALUES
+            (%(organization_id)s, %(sudo_id)s, %(name)s, %(value)s)
+          """
+    return _insert_and_get_id(conn, sql,
+                              dict(organization_id=organization_id,
+                                   name=name,
+                                   value=value,
+                                   sudo_id=sudo_id))
 
 
 def _insert_and_get_id(conn, sql, args):
