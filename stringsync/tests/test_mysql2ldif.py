@@ -564,6 +564,9 @@ class TestMysql2Ldif(object):
         d1_int_fqdn = f.f_device_1_int_fqdn(self.conn)
         d2_int_fqdn = f.f_device_2_int_fqdn(self.conn)
 
+        # and to test entries in device_dns
+        alt_dns = f.f_device_dns_alt_device_1(self.conn)
+
         ldif = StrLdif()
         # just to make sure that we're wrapping, as that's what will
         # happen
@@ -613,6 +616,15 @@ class TestMysql2Ldif(object):
           objectClass: dNSDomain
           structuralObjectClass: dNSDomain
 
+          dn: dc=alt_device_one,dc=int,dc=data_center_one,dc=org-one-infra,dc=net,ou=h
+           osts,dc=org-one-infra,dc=net
+          aRecord: 192.168.1.101
+          associatedDomain: alt_device_one.int.data_center_one.org-one-infra.net
+          dc: alt_device_one
+          objectClass: domainRelatedObject
+          objectClass: dNSDomain
+          structuralObjectClass: dNSDomain
+
           dn: dc=device_one,dc=int,dc=data_center_one,dc=org-one-infra,dc=net,ou=hosts
            ,dc=org-one-infra,dc=net
           aRecord: 192.168.1.101
@@ -632,7 +644,6 @@ class TestMysql2Ldif(object):
           structuralObjectClass: dNSDomain
 
           """), ldif.ldif())
-
 
 
 def _check_dn_ldif_writer(ldif, dn):

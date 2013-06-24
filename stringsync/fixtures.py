@@ -23,7 +23,8 @@ TABLES = [
     'application',
     'team_application',
     'application_formation',
-    'team_device'
+    'team_device',
+    'device_dns'
 ]
 
 
@@ -546,6 +547,14 @@ def f_team_1_device_6(conn):
                          device_id=f_device_6(conn))
 
 
+def f_device_dns_alt_device_1(conn):
+    return f_device_dns(
+        conn,
+        organization_id=f_organization_1(conn),
+        device_id=f_device_1(conn),
+        name="alt_device_one.int.data_center_one.org-one-infra.net")
+
+
 @fixture
 def f_organization(conn, name=None, short_name=None, is_disabled=False):
     sql = """INSERT INTO organization
@@ -759,6 +768,20 @@ def f_team_device(conn, organization_id, team_id, device_id):
                               dict(organization_id=organization_id,
                                    team_id=team_id,
                                    device_id=device_id))
+
+
+@fixture
+def f_device_dns(conn, organization_id, device_id, name):
+    sql = """
+          INSERT INTO device_dns
+            (organization_id, device_id, name)
+          VALUES
+            (%(organization_id)s, %(device_id)s, %(name)s)
+          """
+    return _insert_and_get_id(conn, sql,
+                              dict(organization_id=organization_id,
+                                   device_id=device_id,
+                                   name=name))
 
 
 def _insert_and_get_id(conn, sql, args):

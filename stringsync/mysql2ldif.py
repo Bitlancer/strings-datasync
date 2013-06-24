@@ -381,8 +381,19 @@ def _select_device_info_for_hosts(dns_attr, organization_id, db):
          raise Exception("Device id %s only had host attrs %s" %
                          (device_id, attrs))
       device_infos.append((attrs['fqdn'], attrs['dns']))
+      for device_dns_fqdn in _select_device_dns_fqdn(device_id, db):
+         device_infos.append((device_dns_fqdn, attrs['dns']))
 
    return device_infos
+
+
+def _select_device_dns_fqdn(device_id, db):
+   select = """
+            SELECT name
+              FROM device_dns
+              WHERE device_id = %(device_id)s
+            """
+   return [r[0] for r in select_rows(db, select, dict(device_id=device_id))]
 
 
 def _select_dns_int_config_attr(organization_id, db):
