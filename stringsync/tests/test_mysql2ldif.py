@@ -12,7 +12,7 @@ from stringsync.mysql2ldif import organization_dn, NoLdapDomain, \
     dump_people_users_ou, dump_people_users, dump_nodes_ou, \
     dump_data_centers, dump_devices, dump_posix_ou, dump_posix_groups_ou, \
     dump_posix_users_ou, dump_posix_users, dump_posix_groups, \
-    dump_hosts_ou, dump_hosts_with_partials
+    dump_hosts_ou, dump_hosts_with_partials, dump_sudoers_ou
 from stringsync import fixtures as f
 from stringsync.ldif_writers import BuildDnLdifWriter, build_dn
 
@@ -644,6 +644,23 @@ class TestMysql2Ldif(object):
           structuralObjectClass: dNSDomain
 
           """), ldif.ldif())
+
+    def test_dump_sudoers_ou(self):
+        ldif = StrLdif()
+        # just to make sure that we're wrapping, as that's what will
+        # happen
+        org_ldif = build_dn('dc=org-one-infra,dc=net', ldif)
+        # make sure we return a modified ldif writer for further use
+        new_ldif = dump_sudoers_ou(org_ldif)
+        _check_dn_ldif_writer(new_ldif, 'ou=sudoers')
+        eq_(dd("""\
+               dn: ou=sudoers,dc=org-one-infra,dc=net
+               objectClass: organizationalUnit
+               ou: sudoers
+               structuralObjectClass: organizationalUnit
+
+               """), ldif.ldif())
+
 
 
 def _check_dn_ldif_writer(ldif, dn):

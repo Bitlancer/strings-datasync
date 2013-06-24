@@ -327,6 +327,18 @@ def dump_hosts_with_partials(organization_id, db, ldif_writer):
                     aRecord=[addy]))
 
 
+def dump_sudoers_ou(ldif_writer):
+   """
+   Dump the sudoers ou and return an extended ldif_writer.
+   """
+   ldif_writer.unparse(
+      dn='ou=sudoers',
+      attrs=dict(ou=['sudoers'],
+                 structuralObjectClass=['organizationalUnit'],
+                 objectClass=['organizationalUnit']))
+   return build_dn('ou=sudoers', ldif_writer)
+
+
 def _dump_dc_objects(device_fqdns_addys, ldif_writer):
    dc_objects = set()
    for fqdn, addy in device_fqdns_addys:
