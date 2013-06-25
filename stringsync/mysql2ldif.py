@@ -363,18 +363,95 @@ def dump_sudoers(organization_id, db, ldif_writer):
    Since these are leaf entries, do not return an ldif writer for
    extended writing.
    """
-   for sudo in _select_sudoers_info(organization_id, db):
+   for sudo in _select_sudo_info(organization_id, db):
+      for select, cn_template in [("""
+                      SELECT t.id,
+                             d.name
+                      FROM team_device td INNER JOIN team_device_sudo tds
+                             ON td.id = tds.team_device_id
+                      INNER JOIN team t
+                             ON t.id = td.team_id
+                      INNER JOIN device d
+                             ON td.device_id = d.id
+                      WHERE t.organization_id = %(organization_id)s
+                              AND
+                            sudo_id = %(sudo_id)s
+                              AND
+                            t.is_disabled IS FALSE
+                      """,
+                      'team_device_%s_%s')]:
+         tids_dnames = select_rows(db,
+                                   select,
+                                   dict(organization_id=organization_id,
+                                        sudo_id=sudo['sudo_id']))
+         _dump_sudo_tids_dnames(sudo, cn_template,
+                                tids_dnames, db, ldif_writer)
+
+
+def _dump_sudo_tids_dnames(sudo, cn_template,
+                           tids_dnames, db, ldif_writer):
+   for team_id, tid_dnames in itertools.groupby(tids_dnames, lambda x: x[0]):
+      device_names = sorted(list(set([td[1] for td in tid_dnames])))
+      team_name, members = _select_sudo_team_name_and_members(
+         team_id,
+         db)
+      print sudo
+      print team_name
+      print members
+      print device_names
+      cn = cn_template % (_safe_team_name(team_name),
+                          sudo['sudo_role'])
       ldif_writer.unparse(
-         dn='cn=%s' % sudo['sudo_role'],
-         attrs=dict(cn=[sudo['sudo_role']],
+         dn='cn=%s' % cn,
+         attrs=dict(cn=[cn],
                     objectClass=['sudoRole'],
                     structuralObjectClass=['sudoRole'],
                     sudoCommand=sorted(sudo['sudo_command']),
-                    sudoHost=sorted(sudo['sudo_host']),
+                    sudoHost=sorted(device_names),
                     sudoRunAs=sorted(sudo['sudo_run_as']),
                     sudoOption=sorted(sudo['sudo_option']),
                     description=sudo['description'],
-                    sudoUser=sorted(sudo['sudo_user'])))
+                    sudoUser=sorted(members)))
+
+
+def _safe_team_name(team_name):
+   return team_name.replace(' ', '_')
+
+
+def _select_sudo_team_name_and_members(team_id, db):
+   select_name = """
+                 SELECT name
+                   FROM team
+                   WHERE id = %(team_id)s
+                 """
+   team_name = select_val(db, select_name, dict(team_id=team_id))
+   select_members = """
+                    SELECT u.name
+                      FROM user u INNER JOIN user_team ut
+                             ON u.id = ut.user_id
+                      WHERE u.is_disabled IS FALSE
+                              AND
+                            ut.team_id = %(team_id)s
+                    """
+   members = [r[0] for r in select_rows(db, select_members,
+                                        dict(team_id=team_id))]
+   return team_name, members
+
+
+def _select_sudo_team_ids_device_names(organization_id, sudo_id, db):
+   select = """
+            SELECT td.team_id,
+                   d.name
+              FROM team_device td INNER JOIN team_device_sudo tds
+                     ON td.id = tds.team_device_id
+                   INNER JOIN device d
+                     ON td.device_id = d.id
+              WHERE organization_id = %(organization_id)s
+                      AND
+                    sudo_id = %(sudo_id)s
+            """
+   return select_rows(db, select, dict(organization_id=organization_id,
+                                       sudo_id=sudo_id))
 
 
 def dump_ldap_ou(ldif_writer):
@@ -525,20 +602,29 @@ def _extract_ldap_grist(ldap_str):
       return None
 
 
-def _select_sudoers_info(organization_id, db):
+def _select_sudo_info(organization_id, db):
+   """
+   Return a list of dicts with sudo info including:
+
+   - sudo_id (id from the db, for use in later selects etc.)
+
+   - sudo_role (str)
+
+   - description (list of len 1)
+
+   - sudo_command (list of commands)
+
+   - sudo_run_as (list of users)
+
+   - sudo_option (list of options)
+   """
    sudo_ids_names = _select_sudo_ids_names(organization_id, db)
    # dicts by id of the sudo
    sudos = defaultdict(lambda: defaultdict(list))
    for sudo_id, name in sudo_ids_names:
       sudos[sudo_id]['sudo_role'] = name
-      # this is defaulted, always
-      sudos[sudo_id]['sudo_host'].append('ALL')
       # this is generated, always
       sudos[sudo_id]['description'].append('%s sudo role' % name)
-      sudos[sudo_id]['sudo_user'] = _select_sudo_users(organization_id,
-                                                       sudo_id,
-                                                       db)
-
       for a_name, a_value in _select_sudo_attrs(sudo_id, db):
          if a_name == 'sudoCommand':
             sudos[sudo_id]['sudo_command'].append(a_value)
@@ -549,6 +635,8 @@ def _select_sudoers_info(organization_id, db):
          else:
             raise Exception("Did not recognize sudo attr %s" % a_name)
 
+   for sudo_id, sudo_dict in sudos.items():
+      sudo_dict['sudo_id'] = sudo_id
    sudos = [(s['sudo_role'], s) for s in sudos.values()]
    # sort to make it easier to test
    sudos.sort()

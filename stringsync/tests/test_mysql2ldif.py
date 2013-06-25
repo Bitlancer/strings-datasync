@@ -695,7 +695,7 @@ class TestMysql2Ldif(object):
 
                """), ldif.ldif())
 
-    def test_dump_sudoers(self):
+    def test_dump_sudoers_through_team_device(self):
         org_1 = f.f_organization_1(self.conn)
 
         s = f.f_sudo_1(self.conn)
@@ -706,6 +706,29 @@ class TestMysql2Ldif(object):
         s_o1 = f.f_sudo_1_opt_1(self.conn)
         s_o2 = f.f_sudo_1_opt_2(self.conn)
 
+        u_1 = f.f_user_1(self.conn)
+        u_2 = f.f_user_2(self.conn)
+
+        d_6 = f.f_device_6(self.conn)
+        d_2 = f.f_device_2(self.conn)
+
+        # this should get the team to device 6
+        t_1 = f.f_team_1(self.conn)
+        t_1_d_6 = f.f_team_1_device_6(self.conn)
+        t_1_d_4 = f.f_team_1_device_4(self.conn)
+
+        # this *shouldn't* get the team to device 2, b/c it's disabled
+        dt = f.f_disabled_team(self.conn)
+        dt_d_2 = f.f_disabled_team_device_2(self.conn)
+
+        u1_t1 = f.f_membership_u1_t1(self.conn)
+        u2_t1 = f.f_membership_u2_t1(self.conn)
+        u1_dt = f.f_membership_u1_dt(self.conn)
+
+        t_1_d_6_s_1 = f.f_team_1_device_6_sudo_1(self.conn)
+        t_1_d_4_s_1 = f.f_team_1_device_4_sudo_1(self.conn)
+        dt_d_2_s_1 = f.f_disabled_team_device_2_sudo_1(self.conn)
+
         ldif = StrLdif()
         # just to make sure that we're wrapping, as that's what will
         # happen
@@ -713,21 +736,25 @@ class TestMysql2Ldif(object):
         # should not return a new ldif
         eq_(None,
             dump_sudoers(org_1, self.conn, sudoers_ldif))
-        eq_(dd("""\
-               dn: cn=sudo_role_1,ou=sudoers,dc=org-one-infra,dc=net
-               cn: sudo_role_1
-               description: sudo_role_1 sudo role
-               objectClass: sudoRole
-               structuralObjectClass: sudoRole
-               sudoCommand: ls
-               sudoCommand: mv
-               sudoHost: ALL
-               sudoOption: sudo_opt_1
-               sudoOption: sudo_opt_2
-               sudoRunAs: bob
-               sudoRunAs: jim
+        eq_(dd(
+            """\
+            dn: cn=team_device_team_one_sudo_role_1,ou=sudoers,dc=org-one-infra,dc=net
+            cn: team_device_team_one_sudo_role_1
+            description: sudo_role_1 sudo role
+            objectClass: sudoRole
+            structuralObjectClass: sudoRole
+            sudoCommand: ls
+            sudoCommand: mv
+            sudoHost: device_four
+            sudoHost: device_six
+            sudoOption: sudo_opt_1
+            sudoOption: sudo_opt_2
+            sudoRunAs: bob
+            sudoRunAs: jim
+            sudoUser: user_one
+            sudoUser: user_two
 
-               """), ldif.ldif())
+            """), ldif.ldif())
 
     def test_dump_ldap_ou(self):
         ldif = StrLdif()

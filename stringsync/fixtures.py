@@ -617,6 +617,35 @@ def f_team_1_device_6(conn):
                          device_id=f_device_6(conn))
 
 
+def f_team_1_device_4(conn):
+    return f_team_device(conn,
+                         organization_id=f_organization_1(conn),
+                         team_id=f_team_1(conn),
+                         device_id=f_device_4(conn))
+
+
+def f_team_1_device_6_sudo_1(conn):
+    return f_team_device_sudo(conn,
+                              organization_id=f_organization_1(conn),
+                              team_device_id=f_team_1_device_6(conn),
+                              sudo_id=f_sudo_1(conn))
+
+
+def f_team_1_device_4_sudo_1(conn):
+    return f_team_device_sudo(conn,
+                              organization_id=f_organization_1(conn),
+                              team_device_id=f_team_1_device_4(conn),
+                              sudo_id=f_sudo_1(conn))
+
+
+def f_disabled_team_device_2_sudo_1(conn):
+    return f_team_device_sudo(conn,
+                              organization_id=f_organization_1(conn),
+                              team_device_id=f_disabled_team_device_2(conn),
+                              sudo_id=f_sudo_1(conn))
+
+
+
 def f_device_dns_alt_device_1(conn):
     return f_device_dns(
         conn,
@@ -995,6 +1024,20 @@ def f_hiera(conn, organization_id, hiera_key, var, val):
                                    hiera_key=hiera_key,
                                    var=var,
                                    val=val))
+
+
+@fixture
+def f_team_device_sudo(conn, organization_id, team_device_id, sudo_id):
+    sql = """
+          INSERT INTO team_device_sudo
+            (organization_id, team_device_id, sudo_id)
+              VALUES
+            (%(organization_id)s, %(team_device_id)s, %(sudo_id)s)
+          """
+    return _insert_and_get_id(conn, sql,
+                              dict(organization_id=organization_id,
+                                   team_device_id=team_device_id,
+                                   sudo_id=sudo_id))
 
 
 def _insert_and_get_id(conn, sql, args):
