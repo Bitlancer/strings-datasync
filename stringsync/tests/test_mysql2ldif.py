@@ -708,6 +708,7 @@ class TestMysql2Ldif(object):
 
         u_1 = f.f_user_1(self.conn)
         u_2 = f.f_user_2(self.conn)
+        d_u = f.f_disabled_user(self.conn)
 
         d_6 = f.f_device_6(self.conn)
         d_2 = f.f_device_2(self.conn)
@@ -724,6 +725,7 @@ class TestMysql2Ldif(object):
         u1_t1 = f.f_membership_u1_t1(self.conn)
         u2_t1 = f.f_membership_u2_t1(self.conn)
         u1_dt = f.f_membership_u1_dt(self.conn)
+        du_t1 = f.f_membership_du_t1(self.conn)
 
         t_1_d_6_s_1 = f.f_team_1_device_6_sudo_1(self.conn)
         t_1_d_4_s_1 = f.f_team_1_device_4_sudo_1(self.conn)
