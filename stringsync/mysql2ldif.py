@@ -3,6 +3,7 @@ Dump the strings mysql data for a given organization to a full ldif.
 """
 
 from collections import defaultdict
+import hashlib
 import itertools
 import re
 
@@ -452,7 +453,7 @@ def dump_ldap_users(organization_id, db, ldif_writer):
                     structuralObjectClass=['inetOrgPerson'],
                     cn=['%s user' % uname],
                     sn=['%s user' % uname],
-                    userPassword=[password]))
+                    userPassword=['{SHA}%s' % _sha1(password)]))
 
 
 def _select_ldap_names_and_passwords(organization_id, db):
@@ -1089,3 +1090,7 @@ def _org_dc_from_dn(dn):
       return dc1[len('dc='):]
 
 
+def _sha1(s):
+    sha1 = hashlib.sha1()
+    sha1.update(s)
+    return sha1.hexdigest()

@@ -833,7 +833,7 @@ class TestMysql2Ldif(object):
                sn: pdns user
                structuralObjectClass: inetOrgPerson
                uid: pdns
-               userPassword: ldap pdns passwd!
+               userPassword: {SHA}953902cd692dc4e7e311b510aed9bba3d518968f
 
                dn: uid=puppet,ou=users,ou=ldap,dc=org-one-infra,dc=net
                cn: puppet user
@@ -841,7 +841,7 @@ class TestMysql2Ldif(object):
                sn: puppet user
                structuralObjectClass: inetOrgPerson
                uid: puppet
-               userPassword: ldap puppet passwd!
+               userPassword: {SHA}566e5ce5cf3251c39958b4735d7572d869de15b3
 
                """), ldif.ldif())
 
