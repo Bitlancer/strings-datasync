@@ -717,6 +717,7 @@ class TestMysql2Ldif(object):
         t_1 = f.f_team_1(self.conn)
         t_1_d_6 = f.f_team_1_device_6(self.conn)
         t_1_d_4 = f.f_team_1_device_4(self.conn)
+        dt_d_2 = f.f_disabled_team_device_2(self.conn)
 
         # this *shouldn't* get the team to device 2, b/c it's disabled
         dt = f.f_disabled_team(self.conn)
