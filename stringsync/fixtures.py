@@ -30,7 +30,9 @@ TABLES = [
     'team_role',
     'hiera',
     'team_device_sudo',
-    'team_role_sudo'
+    'team_role_sudo',
+    'team_formation_sudo',
+    'team_application_sudo'
 ]
 
 
@@ -297,6 +299,13 @@ def f_team_1_formation_1(conn):
                             formation_id=f_formation_1(conn))
 
 
+def f_team_1_formation_1_sudo_1(conn):
+    return f_team_formation_sudo(conn,
+                                 organization_id=f_organization_1(conn),
+                                 team_formation_id=f_team_1_formation_1(conn),
+                                 sudo_id=f_sudo_1(conn))
+
+
 def f_role_1(conn):
     return f_role(conn,
                   organization_id=f_organization_1(conn),
@@ -545,6 +554,14 @@ def f_device_3(conn):
                     name="device_three",
                     role_id=f_role_1(conn),
                     formation_id=f_formation_2(conn))
+
+
+def f_disabled_team_formation_2_sudo_1(conn):
+    return f_team_formation_sudo(
+        conn,
+        organization_id=f_organization_1(conn),
+        team_formation_id=f_disabled_team_formation_2(conn),
+        sudo_id=f_sudo_1(conn))
 
 
 def f_device_3_ex_fqdn(conn):
@@ -1069,6 +1086,19 @@ def f_team_role_sudo(conn, organization_id, team_role_id, sudo_id):
                                    team_role_id=team_role_id,
                                    sudo_id=sudo_id))
 
+
+@fixture
+def f_team_formation_sudo(conn, organization_id, team_formation_id, sudo_id):
+    sql = """
+          INSERT INTO team_formation_sudo
+            (organization_id, team_formation_id, sudo_id)
+              VALUES
+            (%(organization_id)s, %(team_formation_id)s, %(sudo_id)s)
+          """
+    return _insert_and_get_id(conn, sql,
+                              dict(organization_id=organization_id,
+                                   team_formation_id=team_formation_id,
+                                   sudo_id=sudo_id))
 
 
 def _insert_and_get_id(conn, sql, args):

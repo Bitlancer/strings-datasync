@@ -817,6 +817,66 @@ class TestMysql2Ldif(object):
 
             """), ldif.ldif())
 
+    def test_dump_sudo_through_formations(self):
+        org_1 = f.f_organization_1(self.conn)
+
+        # device 1 is in formation 1
+        f.f_formation_1(self.conn)
+        f.f_device_1(self.conn)
+
+        # user 1 is in team 1
+        f.f_membership_u1_t1(self.conn)
+        # so is disabled user, but he shouldn't show up
+        f.f_membership_du_t1(self.conn)
+
+        # team 1 has access to formation 1
+        f.f_team_1_formation_1(self.conn)
+
+        # team 1 formation 1 has sudo 1
+        f.f_team_1_formation_1_sudo_1(self.conn)
+
+        # test that disabled team doesn't get anywhere...
+        f.f_disabled_team_formation_2(self.conn)
+
+        # device 3 has formation 2
+        f.f_device_3(self.conn)
+
+        # disabled team formation 2 has sudo 1
+        f.f_disabled_team_formation_2_sudo_1(self.conn)
+
+        f.f_sudo_1_cmd_ls(self.conn)
+        f.f_sudo_1_cmd_mv(self.conn)
+        f.f_sudo_1_run_as_bob(self.conn)
+        f.f_sudo_1_run_as_jim(self.conn)
+        f.f_sudo_1_opt_1(self.conn)
+        f.f_sudo_1_opt_2(self.conn)
+
+        ldif = StrLdif()
+        # just to make sure that we're wrapping, as that's what will
+        # happen
+        sudoers_ldif = build_dn('ou=sudoers,dc=org-one-infra,dc=net', ldif)
+        # should not return a new ldif
+        eq_(None,
+            dump_sudoers(org_1, self.conn, sudoers_ldif))
+        eq_(dd(
+            """\
+          dn: cn=team_formation_team_one_sudo_role_1,ou=sudoers,dc=org-one-infra,dc=ne
+           t
+          cn: team_formation_team_one_sudo_role_1
+          description: sudo_role_1 sudo role
+          objectClass: sudoRole
+          structuralObjectClass: sudoRole
+          sudoCommand: ls
+          sudoCommand: mv
+          sudoHost: device_one
+          sudoOption: sudo_opt_1
+          sudoOption: sudo_opt_2
+          sudoRunAs: bob
+          sudoRunAs: jim
+          sudoUser: user_one
+
+          """), ldif.ldif())
+
     def test_dump_ldap_ou(self):
         ldif = StrLdif()
         # just to make sure that we're wrapping, as that's what will
