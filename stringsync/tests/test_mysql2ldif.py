@@ -759,6 +759,64 @@ class TestMysql2Ldif(object):
 
             """), ldif.ldif())
 
+    def test_dump_sudoers_through_team_role(self):
+        org_1 = f.f_organization_1(self.conn)
+
+        f.f_team_1_role_3(self.conn)
+        f.f_disabled_team_role_4(self.conn)
+
+        # device 7 has role 3
+        f.f_device_7(self.conn)
+
+        # user 1 is in team 1
+        f.f_membership_u1_t1(self.conn)
+        # so is disabled user, but he shouldn't show up
+        f.f_membership_du_t1(self.conn)
+
+        # team 1 role 3 has sudo 1
+        f.f_team_1_role_3_sudo_1(self.conn)
+
+        # test that disabled team doesn't get anywhere...
+        f.f_disabled_team_role_4(self.conn)
+
+        # device 8 has role 4
+        f.f_device_8(self.conn)
+
+        # disabled team role 4 has sudo 1
+        f.f_disabled_team_role_4_sudo_1(self.conn)
+
+        f.f_sudo_1_cmd_ls(self.conn)
+        f.f_sudo_1_cmd_mv(self.conn)
+        f.f_sudo_1_run_as_bob(self.conn)
+        f.f_sudo_1_run_as_jim(self.conn)
+        f.f_sudo_1_opt_1(self.conn)
+        f.f_sudo_1_opt_2(self.conn)
+
+        ldif = StrLdif()
+        # just to make sure that we're wrapping, as that's what will
+        # happen
+        sudoers_ldif = build_dn('ou=sudoers,dc=org-one-infra,dc=net', ldif)
+        # should not return a new ldif
+        eq_(None,
+            dump_sudoers(org_1, self.conn, sudoers_ldif))
+        eq_(dd(
+            """\
+            dn: cn=team_role_team_one_sudo_role_1,ou=sudoers,dc=org-one-infra,dc=net
+            cn: team_role_team_one_sudo_role_1
+            description: sudo_role_1 sudo role
+            objectClass: sudoRole
+            structuralObjectClass: sudoRole
+            sudoCommand: ls
+            sudoCommand: mv
+            sudoHost: device_seven
+            sudoOption: sudo_opt_1
+            sudoOption: sudo_opt_2
+            sudoRunAs: bob
+            sudoRunAs: jim
+            sudoUser: user_one
+
+            """), ldif.ldif())
+
     def test_dump_ldap_ou(self):
         ldif = StrLdif()
         # just to make sure that we're wrapping, as that's what will

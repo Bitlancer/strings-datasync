@@ -365,21 +365,37 @@ def dump_sudoers(organization_id, db, ldif_writer):
    """
    for sudo in _select_sudo_info(organization_id, db):
       for select, cn_template in [("""
-                      SELECT t.id,
-                             d.name
-                      FROM team_device td INNER JOIN team_device_sudo tds
-                             ON td.id = tds.team_device_id
-                      INNER JOIN team t
-                             ON t.id = td.team_id
-                      INNER JOIN device d
-                             ON td.device_id = d.id
-                      WHERE t.organization_id = %(organization_id)s
-                              AND
-                            sudo_id = %(sudo_id)s
-                              AND
-                            t.is_disabled IS FALSE
-                      """,
-                      'team_device_%s_%s')]:
+                                   SELECT t.id,
+                                          d.name
+                                   FROM team_device td INNER JOIN team_device_sudo tds
+                                          ON td.id = tds.team_device_id
+                                   INNER JOIN team t
+                                          ON t.id = td.team_id
+                                   INNER JOIN device d
+                                          ON td.device_id = d.id
+                                   WHERE t.organization_id = %(organization_id)s
+                                           AND
+                                         sudo_id = %(sudo_id)s
+                                           AND
+                                         t.is_disabled IS FALSE
+                                   """,
+                                   'team_device_%s_%s'),
+                                  ("""
+                                   SELECT t.id,
+                                          d.name
+                                   FROM team_role tr INNER JOIN team_role_sudo trs
+                                          ON tr.id = trs.team_role_id
+                                   INNER JOIN team t
+                                          ON t.id = tr.team_id
+                                   INNER JOIN device d
+                                          ON tr.role_id = d.role_id
+                                   WHERE t.organization_id = %(organization_id)s
+                                           AND
+                                         sudo_id = %(sudo_id)s
+                                           AND
+                                         t.is_disabled IS FALSE
+                                   """,
+                                   "team_role_%s_%s")]:
          tids_dnames = select_rows(db,
                                    select,
                                    dict(organization_id=organization_id,
@@ -395,10 +411,6 @@ def _dump_sudo_tids_dnames(sudo, cn_template,
       team_name, members = _select_sudo_team_name_and_members(
          team_id,
          db)
-      print sudo
-      print team_name
-      print members
-      print device_names
       cn = cn_template % (_safe_team_name(team_name),
                           sudo['sudo_role'])
       ldif_writer.unparse(

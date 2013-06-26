@@ -28,7 +28,9 @@ TABLES = [
     'sudo',
     'sudo_attribute',
     'team_role',
-    'hiera'
+    'hiera',
+    'team_device_sudo',
+    'team_role_sudo'
 ]
 
 
@@ -645,6 +647,20 @@ def f_disabled_team_device_2_sudo_1(conn):
                               sudo_id=f_sudo_1(conn))
 
 
+def f_team_1_role_3_sudo_1(conn):
+    return f_team_role_sudo(conn,
+                            organization_id=f_organization_1(conn),
+                            team_role_id=f_team_1_role_3(conn),
+                            sudo_id=f_sudo_1(conn))
+
+
+def f_disabled_team_role_4_sudo_1(conn):
+    return f_team_role_sudo(conn,
+                            organization_id=f_organization_1(conn),
+                            team_role_id=f_disabled_team_role_4(conn),
+                            sudo_id=f_sudo_1(conn))
+
+
 
 def f_device_dns_alt_device_1(conn):
     return f_device_dns(
@@ -1038,6 +1054,21 @@ def f_team_device_sudo(conn, organization_id, team_device_id, sudo_id):
                               dict(organization_id=organization_id,
                                    team_device_id=team_device_id,
                                    sudo_id=sudo_id))
+
+
+@fixture
+def f_team_role_sudo(conn, organization_id, team_role_id, sudo_id):
+    sql = """
+          INSERT INTO team_role_sudo
+            (organization_id, team_role_id, sudo_id)
+              VALUES
+            (%(organization_id)s, %(team_role_id)s, %(sudo_id)s)
+          """
+    return _insert_and_get_id(conn, sql,
+                              dict(organization_id=organization_id,
+                                   team_role_id=team_role_id,
+                                   sudo_id=sudo_id))
+
 
 
 def _insert_and_get_id(conn, sql, args):
