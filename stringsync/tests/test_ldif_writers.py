@@ -27,17 +27,20 @@ def test_barfs_on_double_commit():
     sldif.commit()
 
 
-def test_writes_sorted_by_dn_to_underlying_ldif_on_commit():
+def test_writes_sorted_by_len_then_dn_to_underlying_ldif_on_commit():
     mock_ldif_writer = MockLdifWriter()
     sldif = SortedLdifWriter(mock_ldif_writer)
     eq_([], mock_ldif_writer.called_with)
     sldif.unparse(dn='hi', attrs=dict(hi='here'))
     eq_([], mock_ldif_writer.called_with)
+    sldif.unparse(dn='cat', attrs=dict(hi='dog'))
+    eq_([], mock_ldif_writer.called_with)
     sldif.unparse(dn='bye', attrs=dict(hi='there'))
     eq_([], mock_ldif_writer.called_with)
     sldif.commit()
-    eq_([('bye', dict(hi='there')),
-         ('hi', dict(hi='here'))],
+    eq_([('hi', dict(hi='here')),
+         ('bye', dict(hi='there')),
+         ('cat', dict(hi='dog'))],
           mock_ldif_writer.called_with)
 
 
@@ -49,8 +52,8 @@ def test_with_commits_on_normal_execution():
         eq_([], mock_ldif_writer.called_with)
         sldif_writer.unparse(dn='bye', attrs=dict(hi='there'))
         eq_([], mock_ldif_writer.called_with)
-    eq_([('bye', dict(hi='there')),
-         ('hi', dict(hi='here'))],
+    eq_([('hi', dict(hi='here')),
+         ('bye', dict(hi='there'))],
           mock_ldif_writer.called_with)
 
 

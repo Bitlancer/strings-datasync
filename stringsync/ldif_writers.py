@@ -14,7 +14,20 @@ class AlreadyCommittedException(Exception):
 class SortedLdifWriter(object):
     """
     A wrapper around a normal ldif writer that buffers calls to
-    'unparse' and writes them in sorted order when finished.
+    'unparse' and when committed writes them sorted by:
+
+    - length of dn ascending
+
+    - lexical sorting of dn within groups of equivalent dn length
+
+    This sorted approach is so that:
+
+    - containing units are always created before contained units
+      (because the dn of the containing units will always be shorter
+      than the dn of the contained units)
+
+    - we can easily compare two sorted ldifs for differences (used for
+      ldif shipping)
 
     Can (and should) be used in a 'with' statement, e.g.:
 
@@ -70,8 +83,11 @@ class SortedLdifWriter(object):
         """
         if self.committed:
             raise AlreadyCommittedException()
-        self.buffer.sort()
-        for (dn, attrs) in self.buffer:
+        buf = [(len(dn), dn, attrs)
+               for dn, attrs
+               in self.buffer]
+        buf.sort()
+        for (_len, dn, attrs) in buf:
             self.ldif_writer.unparse(dn, attrs)
         self.committed = True
 
