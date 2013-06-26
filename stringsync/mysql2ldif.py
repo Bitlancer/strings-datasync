@@ -5,6 +5,7 @@ Dump the strings mysql data for a given organization to a full ldif.
 from collections import defaultdict
 import hashlib
 import itertools
+import json
 import re
 
 from stringsync.db import select_row, select_rows, select_val
@@ -436,6 +437,131 @@ def dump_sudoers(organization_id, db, ldif_writer):
                                         sudo_id=sudo['sudo_id']))
          _dump_sudo_tids_dnames(sudo, cn_template,
                                 tids_dnames, db, ldif_writer)
+
+
+def dump_hiera_ou(ldif_writer):
+   """
+   Dump the top-level ou for hiera data, and return an extended
+   ldif_writer.
+   """
+   ldif_writer.unparse(
+      dn='ou=hiera',
+      attrs=dict(ou=['hiera'],
+                 structuralObjectClass=['organizationalUnit'],
+                 objectClass=['organizationalUnit']))
+   return build_dn('ou=hiera', ldif_writer)
+
+
+def dump_hiera_values(organization_id, db, ldif_writer):
+   """
+   Dump the entries for hiera values.
+
+   This includes dumping parts of the hiera key path as ous, for
+   example a hiera key of the form:
+
+   production/dfw01/common
+
+   would result in two ous:
+
+   - ou=production
+
+   - ou=dfw01,ou=production
+
+   And a cn beneath:
+
+   cn=common,ou=dfw01,ou=production
+
+   where the var / vals for that key would be collected and exported
+   as json in the description field of a 'device' entry (device is
+   used purely for convenience).
+
+   Since these are leaf entries, don't return an extended ldif writer.
+   """
+   hiera_keys_vars_vals = _select_all_hiera(organization_id, db)
+   hiera_keys_vars_vals = list(hiera_keys_vars_vals)
+   hiera_keys_vars_vals.sort()
+
+   by_key = dict()
+
+   for key, key_var_vals in itertools.groupby(hiera_keys_vars_vals,
+                                             lambda x: x[0]):
+      vars_vals = [(t[1], t[2]) for t in key_var_vals]
+      vars_vals.sort()
+      by_key[key] = vars_vals
+
+   ou_names = set()
+   for key in by_key.keys():
+      for ou_name in _gen_hiera_ou_names(key):
+         ou_names.add(ou_name)
+
+   # make it easier to test
+   ou_names = sorted(list(ou_names))
+
+   _dump_hiera_ou_names(ou_names, ldif_writer)
+
+   for key, vars_vals in sorted(by_key.items()):
+      _dump_hiera_val(key, vars_vals, ldif_writer)
+
+
+def _dump_hiera_val(key, vars_vals, ldif_writer):
+   ldif_writer.unparse(
+      dn=_dn_from_hiera_key(key),
+      attrs=dict(objectClass=['device', 'top'],
+                 structuralObjectClass=['device'],
+                 description=[_descrip_from_hiera_vars_vals(vars_vals)]))
+
+
+def _dn_from_hiera_key(hiera_key):
+   segs = hiera_key.split('/')
+   segs.reverse()
+   return "cn=%s,%s" % (segs[0],
+                        ','.join(['ou=%s' % s for s in segs[1:]]))
+
+
+def _descrip_from_hiera_vars_vals(vars_vals):
+   to_json = []
+   vars_vals.sort()
+   for var, var_val in itertools.groupby(vars_vals, lambda x: x[0]):
+      var_val = list(var_val)
+      if len(var_val) == 1:
+         to_json.append((var, var_val[0][1]))
+      else:
+         to_json.append((var, [v[1] for v in var_val]))
+   return json.dumps(dict(to_json), sort_keys=True)
+
+
+def _dump_hiera_ou_names(ou_names, ldif_writer):
+   for top, ou_name in ou_names:
+      ldif_writer.unparse(
+         dn=ou_name,
+         attrs=dict(ou=[top],
+                    objectClass=['organizationalUnit', 'top'],
+                    structuralObjectClass=['organizationalUnit']))
+
+
+def _gen_hiera_ou_names(hiera_key):
+   segs = hiera_key.split('/')
+   segs.reverse()
+   for n in range(1, len(segs)):
+      yield segs[n], ','.join(['ou=%s'% s for s in segs[n:]])
+
+
+def _select_all_hiera(organization_id, db):
+   """
+   Return a list of tuples of:
+
+   (hiera_key, var, val)
+
+   for all hiera entries in the organization.
+   """
+   select = """
+            SELECT hiera_key,
+                   var,
+                   val
+              FROM hiera
+              WHERE organization_id = %(organization_id)s
+            """
+   return select_rows(db, select, dict(organization_id=organization_id))
 
 
 def _dump_sudo_tids_dnames(sudo, cn_template,

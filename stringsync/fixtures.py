@@ -781,6 +781,29 @@ def f_hiera_puppet_username(conn):
                    val='puppet')
 
 
+def f_hiera_prod_dfw01_common_dns_server_2(conn):
+    return f_hiera(conn,
+                   organization_id=f_organization_1(conn),
+                   hiera_key='production/dfw01/common',
+                   var='dns_server',
+                   val='10.10.10.11')
+
+
+def f_hiera_prod_dfw01_common_dns_server_1(conn):
+    return f_hiera(conn,
+                   organization_id=f_organization_1(conn),
+                   hiera_key='production/dfw01/common',
+                   var='dns_server',
+                   val='10.10.10.10')
+
+
+def f_hiera_fqdn_bob_mysql_server_id(conn):
+    return f_hiera(conn,
+                   organization_id=f_organization_1(conn),
+                   hiera_key='fqdn/bob.dfw01.bitlancer-example.net',
+                   var='mysql_server_id',
+                   val='10')
+
 @fixture
 def f_organization(conn, name=None, short_name=None, is_disabled=False):
     sql = """INSERT INTO organization

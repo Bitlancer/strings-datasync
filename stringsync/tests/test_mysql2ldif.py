@@ -15,7 +15,7 @@ from stringsync.mysql2ldif import organization_dn, NoLdapDomain, \
     dump_hosts_ou, dump_hosts_with_partials, dump_sudoers_ou, \
     dump_sudoers_defaults, dump_sudoers, dump_ldap_ou, \
     dump_ldap_groups_ou, dump_ldap_ro_group, dump_ldap_users_ou, \
-    dump_ldap_users
+    dump_ldap_users, dump_hiera_ou, dump_hiera_values
 from stringsync import fixtures as f
 from stringsync.ldif_writers import BuildDnLdifWriter, build_dn
 
@@ -1058,6 +1058,86 @@ class TestMysql2Ldif(object):
                userPassword: {SHA}566e5ce5cf3251c39958b4735d7572d869de15b3
 
                """), ldif.ldif())
+
+    def test_dump_hiera_ou(self):
+        ldif = StrLdif()
+        # just to make sure that we're wrapping, as that's what will
+        # happen
+        org_ldif = build_dn('dc=org-one-infra,dc=net', ldif)
+        # make sure we return a modified ldif writer for further use
+        new_ldif = dump_hiera_ou(org_ldif)
+        _check_dn_ldif_writer(new_ldif, 'ou=hiera')
+        eq_(dd("""\
+               dn: ou=hiera,dc=org-one-infra,dc=net
+               objectClass: organizationalUnit
+               ou: hiera
+               structuralObjectClass: organizationalUnit
+
+               """), ldif.ldif())
+
+    def test_hiera_values(self):
+        org_1 = f.f_organization_1(self.conn)
+
+        f.f_hiera_puppet_username(self.conn)
+        f.f_hiera_puppet_passwd(self.conn)
+        f.f_hiera_pdns_username(self.conn)
+        f.f_hiera_pdns_passwd(self.conn)
+        f.f_hiera_prod_dfw01_common_dns_server_1(self.conn)
+        f.f_hiera_prod_dfw01_common_dns_server_2(self.conn)
+        f.f_hiera_fqdn_bob_mysql_server_id(self.conn)
+
+        ldif = StrLdif()
+        # just to make sure that we're wrapping, as that's what will
+        # happen
+        hiera_ldif = build_dn('ou=hiera,dc=org-one-infra,dc=net',
+                              ldif)
+        # should not return a new ldif
+        eq_(None,
+            dump_hiera_values(org_1,
+                              db=self.conn,
+                              ldif_writer=hiera_ldif))
+        eq_(dd("""\
+          dn: ou=dfw01,ou=production,ou=hiera,dc=org-one-infra,dc=net
+          objectClass: organizationalUnit
+          objectClass: top
+          ou: dfw01
+          structuralObjectClass: organizationalUnit
+
+          dn: ou=fqdn,ou=hiera,dc=org-one-infra,dc=net
+          objectClass: organizationalUnit
+          objectClass: top
+          ou: fqdn
+          structuralObjectClass: organizationalUnit
+
+          dn: ou=production,ou=hiera,dc=org-one-infra,dc=net
+          objectClass: organizationalUnit
+          objectClass: top
+          ou: production
+          structuralObjectClass: organizationalUnit
+
+          dn: cn=bob.dfw01.bitlancer-example.net,ou=fqdn,ou=hiera,dc=org-one-infra,dc=
+           net
+          description: {"mysql_server_id": "10"}
+          objectClass: device
+          objectClass: top
+          structuralObjectClass: device
+
+          dn: cn=common,ou=production,ou=hiera,dc=org-one-infra,dc=net
+          description: {"ldap_pdns_password": "ldap pdns passwd!", "ldap_pdns_username
+           ": "pdns", "ldap_puppet_password": "ldap puppet passwd!", "ldap_puppet_user
+           name": "puppet"}
+          objectClass: device
+          objectClass: top
+          structuralObjectClass: device
+
+          dn: cn=common,ou=dfw01,ou=production,ou=hiera,dc=org-one-infra,dc=net
+          description: {"dns_server": ["10.10.10.10", "10.10.10.11"]}
+          objectClass: device
+          objectClass: top
+          structuralObjectClass: device
+
+          """), ldif.ldif())
+
 
 
 def _check_dn_ldif_writer(ldif, dn):
