@@ -411,7 +411,25 @@ def dump_sudoers(organization_id, db, ldif_writer):
                                      AND
                                    t.is_disabled IS FALSE
                                    """,
-                                   "team_formation_%s_%s")]:
+                                   "team_formation_%s_%s"),
+                                  ("""
+                         SELECT t.id,
+                                d.name
+                         FROM team_application ta INNER JOIN team_application_sudo tas
+                                ON ta.id = tas.team_application_id
+                         INNER JOIN team t
+                                ON t.id = ta.team_id
+                         INNER JOIN application_formation af
+                                ON af.application_id = ta.application_id
+                         INNER JOIN device d
+                                ON af.formation_id = d.formation_id
+                         WHERE t.organization_id = %(organization_id)s
+                                 AND
+                               sudo_id = %(sudo_id)s
+                                 AND
+                               t.is_disabled IS FALSE
+                                   """,
+                                   "team_application_%s_%s")]:
          tids_dnames = select_rows(db,
                                    select,
                                    dict(organization_id=organization_id,

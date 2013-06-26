@@ -470,6 +470,14 @@ def f_team_1_application_1(conn):
                               team_id=f_team_1(conn))
 
 
+def f_team_1_application_1_sudo_1(conn):
+    return f_team_application_sudo(
+        conn,
+        organization_id=f_organization_1(conn),
+        team_application_id=f_team_1_application_1(conn),
+        sudo_id=f_sudo_1(conn))
+
+
 def f_disabled_team_application_2(conn):
     return f_team_application(conn,
                               organization_id=f_organization_1(conn),
@@ -1098,6 +1106,20 @@ def f_team_formation_sudo(conn, organization_id, team_formation_id, sudo_id):
     return _insert_and_get_id(conn, sql,
                               dict(organization_id=organization_id,
                                    team_formation_id=team_formation_id,
+                                   sudo_id=sudo_id))
+
+
+@fixture
+def f_team_application_sudo(conn, organization_id, team_application_id, sudo_id):
+    sql = """
+          INSERT INTO team_application_sudo
+            (organization_id, team_application_id, sudo_id)
+              VALUES
+            (%(organization_id)s, %(team_application_id)s, %(sudo_id)s)
+          """
+    return _insert_and_get_id(conn, sql,
+                              dict(organization_id=organization_id,
+                                   team_application_id=team_application_id,
                                    sudo_id=sudo_id))
 
 
