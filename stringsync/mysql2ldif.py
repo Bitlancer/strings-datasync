@@ -8,8 +8,10 @@ import itertools
 import json
 import re
 
+from ldif import LDIFWriter
+
 from stringsync.db import select_row, select_rows, select_val
-from stringsync.ldif_writers import build_dn, full_dn
+from stringsync.ldif_writers import build_dn, full_dn, SortedLdifWriter
 
 
 class NoLdapDomain(Exception):
@@ -26,6 +28,39 @@ class AmbiguousLdapDomain(Exception):
    pass
 
 
+def mysql2ldif(organization_id, db, out_fil):
+   ldif = LDIFWriter(out_fil)
+   with SortedLdifWriter(ldif) as s_ldif:
+      with dump_organization(organization_id, db, s_ldif) as org_ldif:
+         with dump_people_ou(org_ldif) as p_ldif:
+            with dump_people_users_ou(p_ldif) as pu_ldif:
+               pu_dn = full_dn(pu_ldif)
+               dump_people_users(organization_id, db, p_ldif)
+            with dump_people_groups_ou(p_ldif) as pg_ldif:
+               dump_people_groups(organization_id, pu_dn, db, pg_ldif)
+         with dump_posix_ou(org_ldif) as pos_ldif:
+            with dump_posix_groups_ou(pos_ldif) as posg_ldif:
+               dump_posix_groups(organization_id, db, posg_ldif)
+            with dump_posix_users_ou(pos_ldif) as posu_ldif:
+               dump_posix_users(organization_id, db, posu_ldif)
+         with dump_sudoers_ou(org_ldif) as su_ldif:
+            dump_sudoers_defaults(su_ldif)
+            dump_sudoers(organization_id, db, su_ldif)
+         with dump_nodes_ou(org_ldif) as n_ldif:
+            dump_data_centers(organization_id, db, n_ldif)
+            dump_devices(organization_id, db, n_ldif)
+         with dump_hosts_ou(org_ldif) as h_ldif:
+            dump_hosts_with_partials(organization_id, db, h_ldif)
+         with dump_ldap_ou(org_ldif) as ldap_ldif:
+            with dump_ldap_users_ou(ldap_ldif) as ldapu_ldif:
+               ldap_dn = full_dn(ldapu_ldif)
+               dump_ldap_users(organization_id, db, ldapu_ldif)
+            with dump_ldap_groups_ou(ldap_ldif) as ldapg_ldif:
+               dump_ldap_ro_group(organization_id, ldap_dn, db, ldapg_ldif)
+         with dump_hiera_ou(org_ldif) as hiera_ldif:
+            dump_hiera_values(organization_id, db, hiera_ldif)
+
+
 def dump_organization(organization_id, db, ldif_writer):
    """
    Returns the extended ldif writer of the organization for use in
@@ -39,7 +74,7 @@ def dump_organization(organization_id, db, ldif_writer):
                                   structuralObjectClass=['organization'],
                                   o=[full_name],
                                   dc=[_org_dc_from_dn(org_dn)]))
-   return build_dn(org_dn, ldif_writer), org_dn
+   return build_dn(org_dn, ldif_writer)
 
 
 def dump_people_ou(ldif_writer):
@@ -151,7 +186,7 @@ def dump_nodes_ou(ldif_writer):
 
 def dump_data_centers(organization_id, db, ldif_writer):
    """
-   Dump the data centers as organizational units.
+   Dump the data centers as organizational units under nodes.
 
    We generate the data centers by assuming that the second segment of
    the external fqdns are always the data center, and generating from
@@ -184,6 +219,7 @@ def dump_devices(organization_id, db, ldif_writer):
    As these are leaf entries, don't return an extended ldif writer.
    """
    devices = _select_devices(organization_id, db)
+
    # sort by cn to make it predictable and testable
    cn_and_devices = [(device['external_fqdn'], device)
                      for device
@@ -1202,9 +1238,9 @@ def _select_devices(organization_id, db):
    select = """
             SELECT r.name,
                    a.val
-               FROM device d LEFT OUTER JOIN role r
+               FROM device d INNER JOIN role r
                       ON d.role_id = r.id
-                    LEFT OUTER JOIN device_attribute a
+                    INNER JOIN device_attribute a
                       ON d.id = a.device_id
                WHERE a.var = 'dns.external.fqdn'
                        AND
