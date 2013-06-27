@@ -52,6 +52,21 @@ from ldif import LDIFParser, LDIFWriter
 from ldap import modlist
 
 
+def dn_prev(dn_one, dn_two):
+    """
+    Compare dn_one and dn_two by (len(dn), lexical sorting of dn).
+
+    Return True if dn_one is previous to dn_two by this definition.
+    """
+    len_dn_one = len(dn_one)
+    len_dn_two = len(dn_two)
+
+    if len_dn_one == len_dn_two:
+        return dn_one < dn_two
+    else:
+        return len_dn_one < len_dn_two
+
+
 class UnsortedException(Exception):
     """
     Thrown when a process detects that an input ldif is not sorted
@@ -75,7 +90,7 @@ class SortEnforcer(object):
 
         Otherwise, store new_value as the last seen value.
         """
-        if self.last_seen is not None and self.last_seen > new_value:
+        if self.last_seen is not None and dn_prev(new_value, self.last_seen):
             raise UnsortedException('Saw %s after %s' %
                                     (new_value, self.last_seen))
         self.last_seen = new_value
@@ -238,7 +253,7 @@ class LDiffer(LDIFParser):
         an error.
         """
         return (self._is_valid_cur_old_dn_entry() and
-                self.cur_old_dn_entry.dn < dn)
+                dn_prev(self.cur_old_dn_entry.dn, dn))
 
     def _is_valid_cur_old_dn_entry(self):
         """
@@ -378,8 +393,8 @@ def ldiff(old_ldif_fil, new_ldif_fil, diff_fil):
     needed to transform old into new to the file-like object diff_fil.
 
     Expects both old and new ldif entries to be lexically sorted by
-    dn, and throws an UnsortedException if that expectation is
-    violated.
+    (len(dn), dn), and throws an UnsortedException if that expectation
+    is violated.
     """
     # We want to be able to parse potentially sizable ldif files and
     # process them in a streaming fashion, especially since the LDIF

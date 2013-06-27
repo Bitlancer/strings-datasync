@@ -1,3 +1,6 @@
+dn: cn=Bob Jones, dc=example, dc=com
+changetype: delete
+
 dn: cn=Barbara Jensen, dc=example, dc=com
 changetype: add
 uid: bjensen
@@ -7,7 +10,4 @@ sn: Jensen
 mail: bjensen@example.com
 cn: Barbara Jensen
 cn: Babs Jensen
-
-dn: cn=Bob Jones, dc=example, dc=com
-changetype: delete
 

@@ -1,3 +1,6 @@
+dn: cn=Bob Jones, dc=example, dc=com
+changetype: delete
+
 dn: cn=Barbara Jensen, dc=example, dc=com
 changetype: modify
 delete: title
@@ -5,7 +8,4 @@ delete: title
 add: title
 title: the most famous mythical manager
 -
-
-dn: cn=Bob Jones, dc=example, dc=com
-changetype: delete
 

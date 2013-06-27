@@ -1,4 +1,4 @@
-dn: cn=Barbara Jensen, dc=example, dc=com
+dn: cn=Cob Jones, dc=example, dc=com
 objectClass: person
 cn: Barbara Jensen
 cn: Babs Jensen

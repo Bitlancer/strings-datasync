@@ -82,6 +82,18 @@ def test_unsorted_old_ldif_errs():
 
 
 @raises(ldiff.UnsortedException)
+def test_unsorted_old_ldif_errs_2():
+    diff_fil = StringIO()
+    _diff('unsorted2.txt', 'entry1.txt', diff_fil)
+
+
+@raises(ldiff.UnsortedException)
 def test_unsorted_new_ldif_errs():
     diff_fil = StringIO()
     _diff('entry1.txt', 'unsorted.txt', diff_fil)
+
+
+@raises(ldiff.UnsortedException)
+def test_unsorted_new_ldif_errs_2():
+    diff_fil = StringIO()
+    _diff('entry1.txt', 'unsorted2.txt', diff_fil)
