@@ -12,15 +12,7 @@ description: {"name": "bitlancer/apache","type":"git","url":"git://github.com/bi
 dn: cn=mysql,ou=bitlancer,ou=librarian,...
 description: {"name": "bitlancer/mysql","type":"git","url":"git://github.com/bitlancer/bitlancer-apache.git","reference":"1.1","path":"feature/great-new-feature"}
 
-OR
-
-ou=librarian,...
-
-dn: cn=config,ou=librarian,...
-description: [{"name": "puppetlabs/ntp","type":"forge","url":"http://forge.puppetlabs.com","reference":null,"path":null},{"name": "puppetlabs/mysql","type":"forge","url":"http://forge.puppetlabs.com","reference":"0.0.3","path":null},{"name": "bitlancer/apache","type":"git","url":"git://github.com/bitlancer/bitlancer-apache.git","reference":null,"path":null},{"name": "bitlancer/mysql","type":"git","url":"git://github.com/bitlancer/bitlancer-apache.git","reference":"1.1","path":"feature/great-new-feature"}]
-
-
-** Generate
+-->
 
 mod "puppetlabs/ntp"
   :forge => "http://forge.puppetlabs.com"
