@@ -1,6 +1,7 @@
+from StringIO import StringIO
 import os
 import subprocess
-import time
+import ldap
 
 from nose.tools import eq_
 
@@ -27,14 +28,17 @@ class TestLdifDump(object):
         self.proc.wait()
 
     def test_this(self):
-        sorted_ldif = dump_tree_sorted("ldap://localhost:3897",
-                                       "uid=aa729,ou=people,dc=example,dc=org",
-                                       "smada",
-                                       "dc=example,dc=org")
+        ldap_server = ldap.initialize("ldap://localhost:3897")
+        ldap_server.simple_bind_s("uid=aa729,ou=people,dc=example,dc=org",
+                                  "smada")
+        sio = StringIO()
+        dump_tree_sorted(ldap_server,
+                         "dc=example,dc=org",
+                         sio)
         with open(os.path.join(DIRNAME,
                                "tfiles",
                                "sorted_testing.ldif")) as exp_f:
-            eq_(exp_f.read().strip(), sorted_ldif.strip())
+            eq_(exp_f.read().strip(), sio.getvalue().strip())
 
 
 
