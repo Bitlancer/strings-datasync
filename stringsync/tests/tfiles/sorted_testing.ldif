@@ -1,0 +1,71 @@
+dn: dc=example,dc=org
+dc: example
+objectClass: domain
+objectClass: top
+
+dn: ou=hiera,dc=example,dc=org
+objectClass: organizationalUnit
+objectClass: top
+ou: hiera
+
+dn: ou=people,dc=example,dc=org
+objectClass: organizationalUnit
+objectClass: top
+ou: people
+
+dn: cn=easy,ou=hiera,dc=example,dc=org
+cn: easy
+dc: easy
+description: {"testkey": "test value one", "otherkey": "test value two"}
+objectClass: domain
+objectClass: extensibleObject
+objectClass: top
+
+dn: cn=second,ou=hiera,dc=example,dc=org
+cn: second
+dc: second
+description: {"testkey": "another tv1", "otherkey": "test value two"}
+objectClass: domain
+objectClass: extensibleObject
+objectClass: top
+
+dn: ou=triple,ou=hiera,dc=example,dc=org
+objectClass: organizationalUnit
+objectClass: top
+ou: triple
+
+dn: uid=aa729,ou=people,dc=example,dc=org
+cn: Alexandra Adams
+givenname: Alexandra
+mail: alexandra@example.org
+objectClass: person
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: top
+sn: Adams
+uid: aa729
+userpassword: {SHA}pGlmZX1VOEdHHb30HZezeVNFxGM=
+
+dn: cn=multattrs,ou=hiera,dc=example,dc=org
+cn: multattrs
+dc: multattrs
+description: {"testkey": "another tv1", "otherkey": "test value two"}
+description: {"testkey": "hahhd", "otherkey": "test value two"}
+objectClass: domain
+objectClass: extensibleObject
+objectClass: top
+
+dn: ou=nested,ou=triple,ou=hiera,dc=example,dc=org
+objectClass: organizationalUnit
+objectClass: top
+ou: nested
+
+dn: cn=source,ou=nested,ou=triple,ou=hiera,dc=example,dc=org
+cn: source
+dc: source
+description: {"testkey": "nested testkey", "otherkey": "test value two"}
+objectClass: domain
+objectClass: extensibleObject
+objectClass: top
+
+
