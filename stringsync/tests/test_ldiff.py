@@ -1,6 +1,7 @@
 import os
 from StringIO import StringIO
 
+import mock
 from nose.tools import eq_, raises
 
 from stringsync import ldiff
@@ -50,7 +51,7 @@ TEST_DATA = [
 def _diff(old_ldif_fname, new_ldif_fname, diff_fil):
     with open(_t_fname(old_ldif_fname), 'rb') as old_ldif_fil:
         with open(_t_fname(new_ldif_fname), 'rb') as new_ldif_fil:
-            ldiff.ldiff(old_ldif_fil, new_ldif_fil, diff_fil)
+            ldiff.ldiff_to_ldif(old_ldif_fil, new_ldif_fil, diff_fil)
 
 
 def _check_expected(old_ldif_fname, new_ldif_fname, ldif_diff_fname):
@@ -67,10 +68,18 @@ def test_ldiff_cases():
         yield _check_expected, old_ldif_fname, new_ldif_fname, ldif_diff_fname
 
 
-@raises(Exception)
+@raises(ldiff.NonMatchingDnException)
 def test_handle_change_protects_dns():
     stringio = StringIO()
     diff_writer = ldiff.DiffWriter(stringio)
+    diff_writer.handle_change(ldiff.DnEntry('hi', {}),
+                              ldiff.DnEntry('bye', {}))
+
+
+@raises(ldiff.NonMatchingDnException)
+def test_ldap_applier_handle_change_protects_dns():
+    m = mock.MagicMock()
+    diff_writer = ldiff.LdapApplier(m)
     diff_writer.handle_change(ldiff.DnEntry('hi', {}),
                               ldiff.DnEntry('bye', {}))
 
@@ -97,3 +106,44 @@ def test_unsorted_new_ldif_errs():
 def test_unsorted_new_ldif_errs_2():
     diff_fil = StringIO()
     _diff('entry1.txt', 'unsorted2.txt', diff_fil)
+
+
+def test_ldap_applier_handles_add():
+    add_dn_entry = ldiff.DnEntry('hi', {'testing123': 'hello'})
+    ldap_server = mock.MagicMock()
+    ldap_applier = ldiff.LdapApplier(ldap_server)
+    ldap_applier.handle_add(add_dn_entry)
+    eq_([mock.call.add_s('hi', [('testing123', 'hello')])],
+        ldap_server.mock_calls)
+
+
+def test_ldap_applier_handles_delete():
+    delete_dn_entry = ldiff.DnEntry('hi', {'testing123': 'hello'})
+    ldap_server = mock.MagicMock()
+    ldap_applier = ldiff.LdapApplier(ldap_server)
+    ldap_applier.handle_delete(delete_dn_entry)
+    eq_([mock.call.delete_s('hi')],
+        ldap_server.mock_calls)
+
+
+def test_ldap_applier_handles_change_with_no_change():
+    dn_entry_one = ldiff.DnEntry('hi', {'testing123': 'hello'})
+    dn_entry_two = ldiff.DnEntry('hi', {'testing123': 'hello'})
+    ldap_server = mock.MagicMock()
+    ldap_applier = ldiff.LdapApplier(ldap_server)
+    ldap_applier.handle_change(dn_entry_one, dn_entry_two)
+    eq_([], ldap_server.mock_calls)
+
+
+def test_ldap_applier_handles_change():
+    dn_entry_one = ldiff.DnEntry('hi', {'testing123': 'hello'})
+    dn_entry_two = ldiff.DnEntry('hi', {'testing123': 'goodbye',
+                                        'hhh': 'ggg'})
+    ldap_server = mock.MagicMock()
+    ldap_applier = ldiff.LdapApplier(ldap_server)
+    ldap_applier.handle_change(dn_entry_one, dn_entry_two)
+    eq_([mock.call.modify_s('hi', [(0, 'hhh', 'ggg'),
+                                   (1, 'testing123', None),
+                                   (0, 'testing123', 'goodbye')])],
+        ldap_server.mock_calls)
+

@@ -35,7 +35,7 @@ the Python ldif libraries, which this uses under the hood.)
 
 This could be accomplished as follows:
 
->>> from ldiff import ldiff
+>>> from ldiff import ldiff_to_ldif
 >>> old_fil = open('old.ldif', 'rb')
 >>> new_fil = open('new.ldif', 'rb')
 >>> incremental_fil = open('incremental.ldif', 'wb')
@@ -65,6 +65,14 @@ def dn_prev(dn_one, dn_two):
         return dn_one < dn_two
     else:
         return len_dn_one < len_dn_two
+
+
+class NonMatchingDnException(Exception):
+    """
+    Thrown if a client tries to calc diffs between two entries with
+    differing dn's.
+    """
+    pass
 
 
 class UnsortedException(Exception):
@@ -177,7 +185,7 @@ class LDiffer(LDIFParser):
     things.
     """
 
-    def __init__(self, new_ldif_fil, old_ldif_entries, diff_writer):
+    def __init__(self, new_ldif_fil, old_ldif_entries, handler):
         """
         `new_ldif_fil`: the file-like object containg the new ldif
         entries.
@@ -185,13 +193,13 @@ class LDiffer(LDIFParser):
         `old_ldif_entries`: a queue from which the old_ldif_entries
         can be pulled in lexical order by dn.
 
-        `diff_writer: a DiffWriter object that can write the
-        additions, changes, and deletions that the LDiffer detects.
+        `handler: an object that can handle the additions, changes,
+        and deletions that the LDiffer detects.
         """
         LDIFParser.__init__(self, new_ldif_fil)
 
         self.old_ldif_entries = old_ldif_entries
-        self.diff_writer = diff_writer
+        self.handler = handler
 
         self.sort_enforcer = SortEnforcer()
 
@@ -217,18 +225,18 @@ class LDiffer(LDIFParser):
         # We may have to do this multiple times until we catch the old
         # ldif entries up with the new ones.
         while self._is_old_dn_entry_prev(dn):
-            self.diff_writer.handle_delete(self.cur_old_dn_entry)
+            self.handler.handle_delete(self.cur_old_dn_entry)
             self._pull_old_dn_entry()
 
         if self._is_old_dn_entry_same(dn):
-            # we rely on the handle_change method in diff_writer to be
+            # we rely on the handle_change method in handler to be
             # smart enough to recognize a no-op if the old and new
             # entries are the same.
-            self.diff_writer.handle_change(self.cur_old_dn_entry,
-                                           DnEntry(dn, entry))
+            self.handler.handle_change(self.cur_old_dn_entry,
+                                       DnEntry(dn, entry))
             self._pull_old_dn_entry()
         else: # the old dn is lexically later than the new dn
-            self.diff_writer.handle_add(DnEntry(dn, entry))
+            self.handler.handle_add(DnEntry(dn, entry))
             # don't pull the next old dn_entry on an add, as the the
             # old stream is already after the new stream lexically,
             # and the cur_old_dn_entry hasn't been handled.
@@ -371,9 +379,10 @@ class DiffWriter(object):
         same dn.
         """
         if old_dn_entry.dn != new_dn_entry.dn:
-            raise Exception("Old and new dn'ss must be the same.")
+            raise NonMatchingDnException("Old and new dn'ss must be the same.")
         changes = modlist.modifyModlist(old_dn_entry.entry, new_dn_entry.entry)
-        self.writer.unparse(old_dn_entry.dn, changes)
+        if changes:
+            self.writer.unparse(old_dn_entry.dn, changes)
 
     def handle_delete(self, dn_entry):
         """
@@ -385,7 +394,54 @@ class DiffWriter(object):
         self.diff_fil.write('\n')
 
 
-def ldiff(old_ldif_fil, new_ldif_fil, diff_fil):
+class LdapApplier(object):
+    """
+    A moderately intelligent bridge that interprets adds, changes, and
+    deletes between two ldif files and applies them as ldap changes
+    against a live server.
+
+    Not intended for use outside this module.
+    """
+
+    def __init__(self, ldap_server):
+        """
+        `ldap_server`: the server against which to run the changes
+        """
+        self.ldap_server = ldap_server
+
+    def handle_add(self, dn_entry):
+        """
+        Write an incremental ldif to add the supplied dn_entry.
+        """
+        addition = modlist.addModlist(dn_entry.entry)
+        self.ldap_server.add_s(dn_entry.dn, addition)
+
+    def handle_change(self, old_dn_entry, new_dn_entry):
+        """
+        Write an incremental ldif to modify the old entry into the new
+        entry.
+
+        If old_dn_entry and new_dn_entry are identical, acts as a
+        no-op.
+
+        Raises an exception if the old and new entries don't have the
+        same dn.
+        """
+        if old_dn_entry.dn != new_dn_entry.dn:
+            raise NonMatchingDnException("Old and new dn'ss must be the same.")
+        changes = modlist.modifyModlist(old_dn_entry.entry, new_dn_entry.entry)
+        if changes:
+            self.ldap_server.modify_s(old_dn_entry.dn, changes)
+
+    def handle_delete(self, dn_entry):
+        """
+        Write the incremental ldif to delete the dn of the supplied
+        entry.
+        """
+        self.ldap_server.delete_s(dn_entry.dn)
+
+
+def ldiff_to_ldif(old_ldif_fil, new_ldif_fil, diff_fil):
     """
     Calculate the difference between the ldif contained in the
     file-like object old_ldif_fil and the ldif contained in the
@@ -396,6 +452,29 @@ def ldiff(old_ldif_fil, new_ldif_fil, diff_fil):
     (len(dn), dn), and throws an UnsortedException if that expectation
     is violated.
     """
+    diff_writer = DiffWriter(diff_fil)
+    _do_ldiff(old_ldif_fil, new_ldif_fil, diff_writer)
+
+
+def ldiff_and_apply(old_ldif_fil, new_ldif_fil, ldap_server):
+    """
+    Calculate the difference between the ldif contained in the
+    file-like object old_ldif_fil and the ldif contained in the
+    file-like object new_ldif_fil, and apply the changes as we go to
+    ldap_server, live.
+
+    Expects both old and new ldif entries to be lexically sorted by
+    (len(dn), dn), and throws an UnsortedException if that expectation
+    is violated.
+
+    Note that is in no way transactional: if the network breaks or
+    something, some of the changes may have been written, others not.
+    """
+    ldap_applier = LdapApplier(ldap_server)
+    _do_ldiff(old_ldif_fil, new_ldif_fil, ldap_applier)
+
+
+def _do_ldiff(old_ldif_fil, new_ldif_fil, handler):
     # We want to be able to parse potentially sizable ldif files and
     # process them in a streaming fashion, especially since the LDIF
     # utilities in python that read in whole files use a tremendous
@@ -411,9 +490,8 @@ def ldiff(old_ldif_fil, new_ldif_fil, diff_fil):
     # DONE token to enter the queue, and the _queue_ldif_entries
     # function to return (thereby ending the process) at that point.
 
-    diff_writer = DiffWriter(diff_fil)
 
-    ldiffer = LDiffer(new_ldif_fil, old_ldif_entries, diff_writer)
+    ldiffer = LDiffer(new_ldif_fil, old_ldif_entries, handler)
     ldiffer.parse()
     # at this point, all the new entries have been written as
     # additions or changes, but there may still be old entries in the
@@ -422,5 +500,5 @@ def ldiff(old_ldif_fil, new_ldif_fil, diff_fil):
     old_dn_entry = ldiffer.cur_old_dn_entry
 
     while _is_valid_dn_entry(old_dn_entry):
-        diff_writer.handle_delete(old_dn_entry)
+        handler.handle_delete(old_dn_entry)
         old_dn_entry = _safe_get(old_ldif_entries)
