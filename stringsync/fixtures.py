@@ -32,7 +32,9 @@ TABLES = [
     'team_device_sudo',
     'team_role_sudo',
     'team_formation_sudo',
-    'team_application_sudo'
+    'team_application_sudo',
+    'module',
+    'module_source'
 ]
 
 
@@ -87,6 +89,39 @@ def clean_all(conn):
 
 def f_organization_1(conn):
     return f_organization(conn, name='Org One', short_name='OrgOne')
+
+
+def f_module_source_apache(conn):
+    return f_module_source(conn,
+                           organization_id=f_organization_1(conn),
+                           name='Bitlancer Apache',
+                           type='git',
+                           url='git://something/somethingelse')
+
+
+def f_module_mysql(conn):
+    return f_module(conn,
+                    organization_id=f_organization_1(conn),
+                    module_source_id=f_module_source_apache(conn),
+                    name='bitlancer/mysql',
+                    reference='1.1',
+                    path='feature/great-new-feature')
+
+
+def f_module_source_puppetlabs(conn):
+    return f_module_source(conn,
+                           organization_id=f_organization_1(conn),
+                           name='Puppet Labs Forge',
+                           type='forge',
+                           url='http://forge/something/etc')
+
+def f_module_ntp(conn):
+    return f_module(conn,
+                    organization_id=f_organization_1(conn),
+                    module_source_id=f_module_source_apache(conn),
+                    name='puppetlabs/ntp',
+                    reference=None,
+                    path=None)
 
 
 def f_ldap_domain_config_1(conn):
@@ -1144,6 +1179,40 @@ def f_team_application_sudo(conn, organization_id, team_application_id, sudo_id)
                               dict(organization_id=organization_id,
                                    team_application_id=team_application_id,
                                    sudo_id=sudo_id))
+
+
+@fixture
+def f_module(conn, organization_id, module_source_id, name, reference, path):
+    short_name = name.split('/')[1]
+    sql = """
+          INSERT INTO module
+            (organization_id, module_source_id, short_name,
+             name, reference, path)
+              VALUES
+            (%(organization_id)s, %(module_source_id)s, %(short_name)s,
+             %(name)s, %(reference)s, %(path)s)
+          """
+    return _insert_and_get_id(conn, sql,
+                              dict(organization_id=organization_id,
+                                   module_source_id=module_source_id,
+                                   short_name=short_name,
+                                   name=name,
+                                   reference=reference,
+                                   path=path))
+
+@fixture
+def f_module_source(conn, organization_id, name, type, url):
+    sql = """
+          INSERT INTO module_source
+            (organization_id, name, type, url)
+              VALUES
+            (%(organization_id)s, %(name)s, %(type)s, %(url)s)
+          """
+    return _insert_and_get_id(conn, sql,
+                              dict(organization_id=organization_id,
+                                   name=name,
+                                   type=type,
+                                   url=url))
 
 
 def _insert_and_get_id(conn, sql, args):

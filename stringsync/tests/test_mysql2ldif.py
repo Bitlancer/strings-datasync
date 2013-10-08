@@ -15,7 +15,8 @@ from stringsync.mysql2ldif import organization_dn, NoLdapDomain, \
     dump_hosts_ou, dump_hosts_with_partials, dump_sudoers_ou, \
     dump_sudoers_defaults, dump_sudoers, dump_ldap_ou, \
     dump_ldap_groups_ou, dump_ldap_ro_group, dump_ldap_users_ou, \
-    dump_ldap_users, dump_hiera_ou, dump_hiera_values
+    dump_ldap_users, dump_hiera_ou, dump_hiera_values, dump_librarian_ou, \
+    dump_librarian_values
 from stringsync import fixtures as f
 from stringsync.ldif_writers import BuildDnLdifWriter, build_dn
 
@@ -1136,6 +1137,78 @@ class TestMysql2Ldif(object):
           structuralObjectClass: device
 
           """), ldif.ldif())
+
+
+    def test_dump_librarian_ou(self):
+        org_1 = f.f_organization_1(self.conn)
+
+        ldif = StrLdif()
+        # just to make sure that we're wrapping, as that's what will
+        # happen
+        org_ldif = build_dn('dc=org-one-infra,dc=net', ldif)
+        # make sure we return a modified ldif writer for further use
+        librarian_ldif = dump_librarian_ou(org_ldif)
+        _check_dn_ldif_writer(librarian_ldif, 'ou=librarian')
+        eq_(dd("""\
+               dn: ou=librarian,dc=org-one-infra,dc=net
+               objectClass: organizationalUnit
+               ou: librarian
+               structuralObjectClass: organizationalUnit
+
+               """), ldif.ldif())
+
+
+
+
+    def test_dump_librarian_values(self):
+        org_1 = f.f_organization_1(self.conn)
+        mod_source_apache = f.f_module_source_apache(self.conn)
+        mod_mysql = f.f_module_mysql(self.conn)
+        mod_source_puppetlabs = f.f_module_source_puppetlabs(self.conn)
+        mod_ntp = f.f_module_ntp(self.conn)
+
+        ldif = StrLdif()
+        # just to make sure that we're wrapping, as that's what will
+        # happen
+        librarian_ldif = build_dn('ou=librarian,dc=org-one-infra,dc=net',
+                                  ldif)
+
+        eq_(None,
+            dump_librarian_values(org_1,
+                                  db=self.conn,
+                                  ldif_writer=librarian_ldif))
+
+        eq_(dd("""\
+               dn: ou=bitlancer,ou=librarian,dc=org-one-infra,dc=net
+               objectClass: organizationalUnit
+               objectClass: top
+               ou: bitlancer
+               structuralObjectClass: organizationalUnit
+
+               dn: ou=puppetlabs,ou=librarian,dc=org-one-infra,dc=net
+               objectClass: organizationalUnit
+               objectClass: top
+               ou: puppetlabs
+               structuralObjectClass: organizationalUnit
+
+               dn: cn=mysql,ou=bitlancer,ou=librarian,dc=org-one-infra,dc=net
+               description: {"name": "bitlancer/mysql", "path": "feature/great-new-feature"
+                , "reference": "1.1", "type": "git", "url": "git://something/somethingelse"
+                }
+               objectClass: device
+               objectClass: top
+               structuralObjectClass: device
+
+               dn: cn=ntp,ou=puppetlabs,ou=librarian,dc=org-one-infra,dc=net
+               description: {"name": "puppetlabs/ntp", "path": null, "reference": null, "ty
+                pe": "git", "url": "git://something/somethingelse"}
+               objectClass: device
+               objectClass: top
+               structuralObjectClass: device
+
+               """),
+            ldif.ldif())
+
 
 
 

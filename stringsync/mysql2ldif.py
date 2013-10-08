@@ -2,7 +2,7 @@
 Dump the strings mysql data for a given organization to a full ldif.
 """
 
-from collections import defaultdict
+from collections import defaultdict, namedtuple
 import hashlib
 import itertools
 import json
@@ -59,6 +59,8 @@ def mysql2ldif(organization_id, db, out_fil):
                dump_ldap_ro_group(organization_id, ldap_dn, db, ldapg_ldif)
          with dump_hiera_ou(org_ldif) as hiera_ldif:
             dump_hiera_values(organization_id, db, hiera_ldif)
+         with dump_librarian_ou(org_ldif) as librarian_ldif:
+            dump_librarian_values(organization_id, db, librarian_ldif)
 
 
 def dump_organization(organization_id, db, ldif_writer):
@@ -488,6 +490,19 @@ def dump_hiera_ou(ldif_writer):
    return build_dn('ou=hiera', ldif_writer)
 
 
+def dump_librarian_ou(ldif_writer):
+   """
+   Dump the top-level ou for librarian data, and return an extended
+   ldif_writer.
+   """
+   ldif_writer.unparse(
+      dn='ou=librarian',
+      attrs=dict(ou=['librarian'],
+                 structuralObjectClass=['organizationalUnit'],
+                 objectClass=['organizationalUnit']))
+   return build_dn('ou=librarian', ldif_writer)
+
+
 def dump_hiera_values(organization_id, db, ldif_writer):
    """
    Dump the entries for hiera values.
@@ -598,6 +613,117 @@ def _select_all_hiera(organization_id, db):
               WHERE organization_id = %(organization_id)s
             """
    return select_rows(db, select, dict(organization_id=organization_id))
+
+
+LibrarianInfo = namedtuple('LibrarianInfo', ['name',
+                                             'type',
+                                             'url',
+                                             'reference',
+                                             'path'])
+
+
+def dump_librarian_values(organization_id, db, ldif_writer):
+   """
+   Dump the entries for librarian values.
+
+   This includes dumping parts of the librarian module names as ous.
+
+   For example, the following names:
+
+   'puppetlabs/ntp'
+
+   and
+
+   'bitlancer/something'
+
+   would result in the creation of two ous:
+
+   - ou=bitlancer,ou=librarian,...
+
+   - ou=puppetlabs,ou=librarian,...
+
+   and below common names:
+
+   - cn=ntp,ou=puppetlabs,ou=librarian,...
+
+   - cn=something,ou=bitlancer,ou=librarian,...
+
+   with a json in the description field of a 'device' entry (device is
+   used purely for convenience), where the json consists of the
+   following fields from mysql:
+
+   {
+     "name": module.name,
+     "type": module_source.type,
+     "url": module_source.url,
+     "reference": module.reference,
+     "path": module.path
+   }
+
+   Since these are leaf entries, don't return an extended ldif writer.
+   """
+   librarian_infos = _select_librarian_infos(organization_id, db)
+   names = [li.name for li in librarian_infos]
+   # sort to make it easier to test
+   ou_names = sorted(list(set([name.split('/')[0] for name in names])))
+
+   _dump_librarian_ou_names(ou_names, ldif_writer)
+
+   for li in librarian_infos:
+      _dump_librarian_entry(li, ldif_writer)
+
+
+def _dump_librarian_entry(librarian_info, ldif_writer):
+   ldif_writer.unparse(
+      dn=_dn_from_librarian_name(librarian_info.name),
+      attrs=dict(objectClass=['device', 'top'],
+                 structuralObjectClass=['device'],
+                 description=[_descrip_from_librarian_info(librarian_info)]))
+
+
+def _dn_from_librarian_name(name):
+   fst, snd = name.split('/')
+   return "cn=%s,ou=%s" % (snd, fst)
+
+
+def _descrip_from_librarian_info(librarian_info):
+   return json.dumps(dict(name=librarian_info.name,
+                          type=librarian_info.type,
+                          url=librarian_info.url,
+                          reference=librarian_info.reference,
+                          path=librarian_info.path),
+                     sort_keys=True)
+
+
+def _dump_librarian_ou_names(ou_names, ldif_writer):
+   for ou_name in ou_names:
+      ldif_writer.unparse(
+         dn="ou=%s" % ou_name,
+         attrs=dict(ou=[ou_name],
+                    objectClass=['organizationalUnit', 'top'],
+                    structuralObjectClass=['organizationalUnit']))
+
+
+def _select_librarian_infos(organization_id, db):
+   select = """
+            SELECT m.name,
+                   ms.type,
+                   ms.url,
+                   m.reference,
+                   m.path
+            FROM module m LEFT OUTER JOIN
+                 module_source ms ON m.module_source_id = ms.id
+            WHERE m.organization_id = %(organization_id)s
+            """
+   rows = select_rows(db, select, dict(organization_id=organization_id))
+
+   return [LibrarianInfo(name=row[0],
+                         type=row[1],
+                         url=row[2],
+                         reference=row[3],
+                         path=row[4])
+           for row
+           in rows]
 
 
 def _dump_sudo_tids_dnames(sudo, cn_template,
