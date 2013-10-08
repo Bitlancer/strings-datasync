@@ -1,3 +1,5 @@
+yum groupinstall "Development Tools"
+
 INSTALL="yum -y install"
 
 $INSTALL python python-devel python-setuptools
