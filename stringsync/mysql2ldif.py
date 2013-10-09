@@ -1491,17 +1491,13 @@ def organization_dn(organization_id, db):
              """
    rows = select_rows(db, select, dict(organization_id=organization_id))
    if not rows:
-      raise NoLdapDomain("No ldap.domain for organization %s",
+      raise NoLdapDomain("No ldap.basedn for organization %s",
                         organization_id)
    if len(rows) > 1:
-      raise AmbiguousLdapDomain("Multiple values for ldap.domain %s" %
+      raise AmbiguousLdapDomain("Multiple values for ldap.basedn %s" %
                                str(rows))
    ldap_domain = rows[0][0]
-   return _format_org_dn(ldap_domain)
-
-
-def _format_org_dn(ldap_domain):
-   return ','.join(["dc=%s" % s for s in ldap_domain.split('.')])
+   return ldap_domain
 
 
 def _org_dc_from_dn(dn):

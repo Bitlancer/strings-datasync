@@ -127,15 +127,15 @@ def f_module_ntp(conn):
 def f_ldap_domain_config_1(conn):
     return f_config(conn,
                     organization_id=f_organization_1(conn),
-                    var='ldap.domain',
-                    val='org-one-infra.net')
+                    var='ldap.basedn',
+                    val='dc=org-one-infra,dc=net')
 
 
 def f_ldap_domain_config_2(conn):
     return f_config(conn,
                     organization_id=f_organization_1(conn),
-                    var='ldap.domain',
-                    val='org-one-infra-2.net')
+                    var='ldap.basedn',
+                    val='dc=org-one-infra-2,dc=net')
 
 
 def f_internal_dns_attr_config_1(conn):
