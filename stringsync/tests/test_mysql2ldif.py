@@ -269,6 +269,7 @@ class TestMysql2Ldif(object):
         dev_1 = f.f_device_1(self.conn)
         dev_2 = f.f_device_2(self.conn)
         dev_3 = f.f_device_3(self.conn)
+        building_dev = f.f_device_building(self.conn)
         fqdn_1 = f.f_device_1_ex_fqdn(self.conn)
         fqdn_2 = f.f_device_2_ex_fqdn(self.conn)
         fqdn_3 = f.f_device_3_ex_fqdn(self.conn)

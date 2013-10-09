@@ -599,6 +599,15 @@ def f_device_3(conn):
                     formation_id=f_formation_2(conn))
 
 
+def f_device_building(conn):
+    return f_device(conn,
+                    organization_id=f_organization_1(conn),
+                    name="device_building",
+                    role_id=f_role_1(conn),
+                    formation_id=f_formation_2(conn),
+                    status='building')
+
+
 def f_disabled_team_formation_2_sudo_1(conn):
     return f_team_formation_sudo(
         conn,
@@ -905,14 +914,17 @@ def f_device(conn,
              role_id,
              formation_id,
              device_type_id=1,
-             implementation_id=1):
+             implementation_id=1,
+             status='active'):
     sql = """
           INSERT INTO device
             (organization_id, name, role_id,
-             formation_id, device_type_id, implementation_id)
+             formation_id, device_type_id, implementation_id,
+             status)
               VALUES
             (%(organization_id)s, %(name)s, %(role_id)s,
-             %(formation_id)s, %(device_type_id)s, %(implementation_id)s)
+             %(formation_id)s, %(device_type_id)s, %(implementation_id)s,
+             %(status)s)
           """
     return _insert_and_get_id(conn, sql,
                               dict(organization_id=organization_id,
@@ -920,7 +932,8 @@ def f_device(conn,
                                    role_id=role_id,
                                    formation_id=formation_id,
                                    device_type_id=device_type_id,
-                                   implementation_id=implementation_id))
+                                   implementation_id=implementation_id,
+                                   status=status))
 
 
 @fixture

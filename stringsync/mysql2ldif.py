@@ -1041,6 +1041,8 @@ def _select_device_info_for_hosts(dns_attr, organization_id, db):
               WHERE d.organization_id = %(organization_id)s
                       AND
                     da.var IN ('dns.internal.fqdn', '{dns_attr}')
+                      AND
+                    d.status = 'active'
             """.format(dns_attr=dns_attr)
    rows = select_rows(db, select, dict(organization_id=organization_id))
 
@@ -1372,6 +1374,8 @@ def _select_devices(organization_id, db):
                WHERE a.var = 'dns.external.fqdn'
                        AND
                      d.organization_id = %(organization_id)s
+                       AND
+                     status = 'active'
             """
    return [dict(role=r[0],
                 external_fqdn=r[1])
