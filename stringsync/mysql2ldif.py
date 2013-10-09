@@ -1,16 +1,17 @@
 """
 Dump the strings mysql data for a given organization to a full ldif.
 """
-
+from ConfigParser import SafeConfigParser
 from collections import defaultdict, namedtuple
 import hashlib
 import itertools
 import json
 import re
+import sys
 
 from ldif import LDIFWriter
 
-from stringsync.db import select_row, select_rows, select_val
+from stringsync.db import select_row, select_rows, select_val, open_conn
 from stringsync.ldif_writers import build_dn, full_dn, SortedLdifWriter
 
 
@@ -1486,7 +1487,7 @@ def organization_dn(organization_id, db):
                WHERE
                  organization_id = %(organization_id)s
                    AND
-                 var = 'ldap.domain'
+                 var = 'ldap.basedn'
              """
    rows = select_rows(db, select, dict(organization_id=organization_id))
    if not rows:
@@ -1516,3 +1517,13 @@ def _sha1(s):
     sha1 = hashlib.sha1()
     sha1.update(s)
     return sha1.hexdigest()
+
+
+if __name__ == '__main__':
+   db_ini_fname = sys.argv[1]
+   org_id = sys.argv[2]
+   with open(db_ini_fname, 'rb') as db_ini_fil:
+      db_config_parser = SafeConfigParser()
+      db_config_parser.readfp(db_ini_fil)
+      db_server = open_conn(db_config_parser)
+      mysql2ldif(org_id, db_server, sys.stdout)
