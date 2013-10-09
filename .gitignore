@@ -5,4 +5,5 @@ tmp
 .vagrant
 Vagrantfile
 todo.org
+strings-datasync-notes.org
 db.ini
