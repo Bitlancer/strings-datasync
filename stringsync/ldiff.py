@@ -413,6 +413,11 @@ class LdapApplier(object):
         """
         Write an incremental ldif to add the supplied dn_entry.
         """
+        # openldap don't like it if you try to take control of this
+        # attr
+        if 'structuralObjectClass' in dn_entry.entry:
+            del dn_entry.entry['structuralObjectClass']
+
         addition = modlist.addModlist(dn_entry.entry)
         self.ldap_server.add_s(dn_entry.dn, addition)
 
@@ -429,6 +434,12 @@ class LdapApplier(object):
         """
         if old_dn_entry.dn != new_dn_entry.dn:
             raise NonMatchingDnException("Old and new dn'ss must be the same.")
+
+        # openldap don't like it if you try to take control of this
+        # attr
+        if 'structuralObjectClass' in new_dn_entry.entry:
+            del new_dn_entry.entry['structuralObjectClass']
+
         changes = modlist.modifyModlist(old_dn_entry.entry, new_dn_entry.entry)
         if changes:
             self.ldap_server.modify_s(old_dn_entry.dn, changes)
