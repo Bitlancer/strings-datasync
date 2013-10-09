@@ -1038,11 +1038,17 @@ def _select_device_info_for_hosts(dns_attr, organization_id, db):
                    da.val
               FROM device d INNER JOIN device_attribute da
                      ON d.id = da.device_id
+                    INNER JOIN device_type dt
+                      ON d.device_type_id = dt.id
               WHERE d.organization_id = %(organization_id)s
                       AND
                     da.var IN ('dns.internal.fqdn', '{dns_attr}')
                       AND
                     d.status = 'active'
+                      AND
+                    d.can_sync_to_ldap = 1
+                      AND
+                    dt.name = 'instance'
             """.format(dns_attr=dns_attr)
    rows = select_rows(db, select, dict(organization_id=organization_id))
 
@@ -1371,11 +1377,17 @@ def _select_devices(organization_id, db):
                       ON d.role_id = r.id
                     INNER JOIN device_attribute a
                       ON d.id = a.device_id
+                    INNER JOIN device_type dt
+                      ON d.device_type_id = dt.id
                WHERE a.var = 'dns.external.fqdn'
                        AND
                      d.organization_id = %(organization_id)s
                        AND
                      status = 'active'
+                      AND
+                    d.can_sync_to_ldap = 1
+                      AND
+                    dt.name = 'instance'
             """
    return [dict(role=r[0],
                 external_fqdn=r[1])

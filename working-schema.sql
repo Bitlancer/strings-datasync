@@ -85,6 +85,7 @@ CREATE TABLE `device` (
   `role_id` bigint(20) unsigned NOT NULL COMMENT 'The id of the role this device belongs to',
   `name` varchar(128) NOT NULL COMMENT 'The name of the device',
   `status` enum('building','resizing','active','deleting','error') DEFAULT 'building' COMMENT 'The status of this device',
+  `can_sync_to_ldap` tinyint(1) DEFAULT '0' COMMENT 'Whether this device should be synced to ldap',
   `updated` datetime  COMMENT 'The date and time of the last update to this record',
   `created` datetime  COMMENT 'The date and time this record was created',
   PRIMARY KEY (`id`)

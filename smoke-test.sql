@@ -239,6 +239,7 @@ CREATE TABLE `device` (
   `role_id` bigint(20) unsigned NOT NULL COMMENT 'The id of the role this device belongs to',
   `name` varchar(128) NOT NULL COMMENT 'The name of the device',
   `status` enum('building','resizing','active','deleting','error') DEFAULT 'building' COMMENT 'The status of this device',
+  `can_sync_to_ldap` tinyint(1) DEFAULT '0' COMMENT 'Whether this device should be synced to ldap',
   `updated` datetime  COMMENT 'The date and time of the last update to this record',
   `created` datetime  COMMENT 'The date and time this record was created',
   PRIMARY KEY (`id`)
@@ -251,7 +252,7 @@ CREATE TABLE `device` (
 
 LOCK TABLES `device` WRITE;
 /*!40000 ALTER TABLE `device` DISABLE KEYS */;
-INSERT INTO `device` VALUES (236,1,1,1,85,7,5,'jefferson-city','active','2013-10-09 01:47:22','2013-10-08 21:37:48'),(237,1,1,1,85,7,5,'albany','active','2013-10-09 01:42:43','2013-10-08 21:37:48'),(238,1,1,1,86,8,6,'boston','active','2013-10-09 01:42:45','2013-10-08 21:39:10'),(239,1,1,1,86,8,6,'harrisburg','active','2013-10-09 01:42:44','2013-10-08 21:39:10'),(240,1,1,1,87,9,7,'saint-paul','active','2013-10-09 01:49:56','2013-10-08 21:40:28'),(241,1,1,1,87,9,7,'lansing','active','2013-10-09 01:47:22','2013-10-08 21:40:28'),(242,1,2,1,87,10,8,'jackson','active','2013-10-09 01:56:30','2013-10-08 21:40:28'),(243,2,1,2,88,12,10,'new york','active','2013-10-09 01:58:23','2013-10-08 21:53:43'),(244,2,1,2,88,12,10,'massachusetts','active','2013-10-09 01:58:23','2013-10-08 21:53:43'),(245,2,1,2,88,12,10,'alaska','building','2013-10-09 02:02:35','2013-10-09 02:02:35'),(246,1,1,1,89,7,5,'alaska','building','2013-10-09 02:12:43','2013-10-09 02:12:43'),(247,1,1,1,89,7,5,'washington','building','2013-10-09 02:12:43','2013-10-09 02:12:43');
+INSERT INTO `device` VALUES (236,1,1,1,85,7,5,'jefferson-city','active',1,'2013-10-09 15:23:26','2013-10-08 21:37:48'),(237,1,1,1,85,7,5,'albany','active',1,'2013-10-09 15:23:26','2013-10-08 21:37:48'),(238,1,1,1,86,8,6,'boston','active',1,'2013-10-09 15:23:26','2013-10-08 21:39:10'),(239,1,1,1,86,8,6,'harrisburg','active',1,'2013-10-09 15:23:26','2013-10-08 21:39:10'),(240,1,1,1,87,9,7,'saint-paul','active',1,'2013-10-09 15:23:26','2013-10-08 21:40:28'),(241,1,1,1,87,9,7,'lansing','active',1,'2013-10-09 15:23:26','2013-10-08 21:40:28'),(242,1,2,1,87,10,8,'jackson','building',0,'2013-10-09 13:31:21','2013-10-08 21:40:28'),(243,2,1,2,88,12,10,'new york','active',1,'2013-10-09 15:23:26','2013-10-08 21:53:43'),(244,2,1,2,88,12,10,'massachusetts','active',1,'2013-10-09 15:23:26','2013-10-08 21:53:43'),(245,2,1,2,88,12,10,'alaska','building',0,'2013-10-09 02:02:35','2013-10-09 02:02:35'),(246,1,1,1,89,7,5,'alaska','building',0,'2013-10-09 02:12:43','2013-10-09 02:12:43'),(247,1,1,1,89,7,5,'washington','building',0,'2013-10-09 02:12:43','2013-10-09 02:12:43');
 /*!40000 ALTER TABLE `device` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -422,7 +423,7 @@ CREATE TABLE `formation` (
 
 LOCK TABLES `formation` WRITE;
 /*!40000 ALTER TABLE `formation` DISABLE KEYS */;
-INSERT INTO `formation` VALUES (85,1,1,6,1,'dev','active','2013-10-09 01:48:27','2013-10-08 21:37:48'),(86,1,1,7,1,'mysql cluster','active','2013-10-09 01:47:01','2013-10-08 21:39:10'),(87,1,1,8,1,'php-apache-cluster','active','2013-10-09 01:58:36','2013-10-08 21:40:28'),(88,2,2,10,14,'mysql cluster','active','2013-10-09 01:58:36','2013-10-08 21:53:43'),(89,1,1,6,2,'test','building','2013-10-09 02:12:43','2013-10-09 02:12:43');
+INSERT INTO `formation` VALUES (85,1,1,6,1,'dev','active','2013-10-09 01:48:27','2013-10-08 21:37:48'),(86,1,1,7,1,'mysql cluster','active','2013-10-09 01:47:01','2013-10-08 21:39:10'),(87,1,1,8,1,'php-apache-cluster','building','2013-10-09 13:30:57','2013-10-08 21:40:28'),(88,2,2,10,14,'mysql cluster','active','2013-10-09 01:58:36','2013-10-08 21:53:43'),(89,1,1,6,2,'test','building','2013-10-09 02:12:43','2013-10-09 02:12:43');
 /*!40000 ALTER TABLE `formation` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -1413,4 +1414,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2013-10-09 12:44:21
+-- Dump completed on 2013-10-09 18:03:39

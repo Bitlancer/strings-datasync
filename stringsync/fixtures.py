@@ -34,7 +34,8 @@ TABLES = [
     'team_formation_sudo',
     'team_application_sudo',
     'module',
-    'module_source'
+    'module_source',
+    'device_type'
 ]
 
 
@@ -608,6 +609,24 @@ def f_device_building(conn):
                     status='building')
 
 
+def f_device_cant_sync(conn):
+    return f_device(conn,
+                    organization_id=f_organization_1(conn),
+                    name="device_building",
+                    role_id=f_role_1(conn),
+                    formation_id=f_formation_2(conn),
+                    can_sync_to_ldap=0)
+
+
+def f_device_non_instance(conn):
+    return f_device(conn,
+                    organization_id=f_organization_1(conn),
+                    name="device_building",
+                    role_id=f_role_1(conn),
+                    formation_id=f_formation_2(conn),
+                    device_type_id=f_device_type_non_instance(conn))
+
+
 def f_disabled_team_formation_2_sudo_1(conn):
     return f_team_formation_sudo(
         conn,
@@ -848,6 +867,18 @@ def f_hiera_fqdn_bob_mysql_server_id(conn):
                    var='mysql_server_id',
                    val='10')
 
+
+def f_device_type_instance(conn):
+    return f_device_type(conn,
+                         name='instance')
+
+
+def f_device_type_non_instance(conn):
+    return f_device_type(conn,
+                         name='noninstance')
+
+
+
 @fixture
 def f_organization(conn, name=None, short_name=None, is_disabled=False):
     sql = """INSERT INTO organization
@@ -913,19 +944,23 @@ def f_device(conn,
              name,
              role_id,
              formation_id,
-             device_type_id=1,
+             device_type_id=None,
              implementation_id=1,
-             status='active'):
+             status='active',
+             can_sync_to_ldap=1):
     sql = """
           INSERT INTO device
             (organization_id, name, role_id,
              formation_id, device_type_id, implementation_id,
-             status)
+             status, can_sync_to_ldap)
               VALUES
             (%(organization_id)s, %(name)s, %(role_id)s,
              %(formation_id)s, %(device_type_id)s, %(implementation_id)s,
-             %(status)s)
+             %(status)s, %(can_sync_to_ldap)s)
           """
+    if device_type_id is None:
+        device_type_id = f_device_type_instance(conn)
+
     return _insert_and_get_id(conn, sql,
                               dict(organization_id=organization_id,
                                    name=name,
@@ -933,7 +968,8 @@ def f_device(conn,
                                    formation_id=formation_id,
                                    device_type_id=device_type_id,
                                    implementation_id=implementation_id,
-                                   status=status))
+                                   status=status,
+                                   can_sync_to_ldap=can_sync_to_ldap))
 
 
 @fixture
@@ -1226,6 +1262,18 @@ def f_module_source(conn, organization_id, name, type, url):
                                    name=name,
                                    type=type,
                                    url=url))
+
+
+@fixture
+def f_device_type(conn, name):
+    sql = """
+          INSERT INTO device_type
+            (name)
+              VALUES
+            (%(name)s)
+          """
+    return _insert_and_get_id(conn, sql,
+                              dict(name=name))
 
 
 def _insert_and_get_id(conn, sql, args):
