@@ -798,14 +798,16 @@ def dump_ldap_ro_group(organization_id, member_dn, db, ldif_writer):
    - `member_dn`: e.g ou=users,ou=ldap,.... is appended to each member
      uid when writing the group.
    """
-   ldif_writer.unparse(
-      dn='cn=ro',
-      attrs=dict(cn=['ro'],
-                 objectClass=['groupOfNames'],
-                 member=['uid=%s,%s' % (ldap_name_and_password[0], member_dn)
-                         for ldap_name_and_password
-                         in _select_ldap_names_and_passwords(organization_id,
-                                                             db)]))
+   names_and_passwords = _select_ldap_names_and_passwords(organization_id, db)
+
+   if names_and_passwords:
+      ldif_writer.unparse(
+         dn='cn=ro',
+         attrs=dict(cn=['ro'],
+                    objectClass=['groupOfNames'],
+                    member=['uid=%s,%s' % (ldap_name_and_password[0], member_dn)
+                            for ldap_name_and_password
+                            in names_and_passwords]))
 
 
 def dump_ldap_users_ou(ldif_writer):
