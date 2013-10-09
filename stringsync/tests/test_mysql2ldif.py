@@ -86,7 +86,6 @@ class TestMysql2Ldif(object):
                o: Org One
                objectClass: organization
                objectClass: dcObject
-               structuralObjectClass: organization
 
                """), ldif.ldif())
 
@@ -102,7 +101,6 @@ class TestMysql2Ldif(object):
                dn: ou=people,dc=org-one-infra,dc=net
                objectClass: organizationalUnit
                ou: people
-               structuralObjectClass: organizationalUnit
 
                """), ldif.ldif())
 
@@ -118,7 +116,6 @@ class TestMysql2Ldif(object):
                dn: ou=groups,ou=people,dc=org-one-infra,dc=net
                objectClass: organizationalUnit
                ou: groups
-               structuralObjectClass: organizationalUnit
 
                """), ldif.ldif())
 
@@ -159,14 +156,12 @@ class TestMysql2Ldif(object):
                member: uid=user_two,ou=users,ou=people,dc=org-one-infra,dc=net
                objectClass: top
                objectClass: groupOfNames
-               structuralObjectClass: groupOfNames
 
                dn: cn=team_two,ou=groups,ou=people,dc=org-one-infra,dc=net
                cn: team_two
                member: uid=user_one,ou=users,ou=people,dc=org-one-infra,dc=net
                objectClass: top
                objectClass: groupOfNames
-               structuralObjectClass: groupOfNames
 
                """),
             ldif.ldif())
@@ -183,7 +178,6 @@ class TestMysql2Ldif(object):
                dn: ou=users,ou=people,dc=org-one-infra,dc=net
                objectClass: organizationalUnit
                ou: users
-               structuralObjectClass: organizationalUnit
 
                """), ldif.ldif())
 
@@ -206,7 +200,6 @@ class TestMysql2Ldif(object):
                cn: John Random User
                objectClass: inetOrgPerson
                sn: User
-               structuralObjectClass: inetOrgPerson
                uid: user_one
                userPassword: {SHA}a63f1597e4efed34dc55d8355c6dc40610eee88e
 
@@ -214,7 +207,6 @@ class TestMysql2Ldif(object):
                cn: Jane Random Userette
                objectClass: inetOrgPerson
                sn: Userette
-               structuralObjectClass: inetOrgPerson
                uid: user_two
                userPassword: {SHA}9804b2c400d70b66f2d8e7c3b04bd26c83321d8e
 
@@ -232,7 +224,6 @@ class TestMysql2Ldif(object):
                dn: ou=nodes,dc=org-one-infra,dc=net
                objectClass: organizationalUnit
                ou: nodes
-               structuralObjectClass: organizationalUnit
 
                """), ldif.ldif())
 
@@ -255,12 +246,10 @@ class TestMysql2Ldif(object):
                dn: ou=data_center_one,ou=nodes,dc=org-one-infra,dc=net
                objectClass: organizationalUnit
                ou: data_center_one
-               structuralObjectClass: organizationalUnit
 
                dn: ou=data_center_two,ou=nodes,dc=org-one-infra,dc=net
                objectClass: organizationalUnit
                ou: data_center_two
-               structuralObjectClass: organizationalUnit
 
                """), ldif.ldif())
 
@@ -292,7 +281,6 @@ class TestMysql2Ldif(object):
           objectClass: device
           objectClass: puppetClient
           puppetClass: role_one
-          structuralObjectClass: device
 
           dn: cn=device_three.data_center_two.org-one-infra.net,ou=data_center_two,ou=
            nodes,dc=org-one-infra,dc=net
@@ -301,7 +289,6 @@ class TestMysql2Ldif(object):
           objectClass: device
           objectClass: puppetClient
           puppetClass: role_one
-          structuralObjectClass: device
 
           dn: cn=device_two.data_center_two.org-one-infra.net,ou=data_center_two,ou=no
            des,dc=org-one-infra,dc=net
@@ -310,7 +297,6 @@ class TestMysql2Ldif(object):
           objectClass: device
           objectClass: puppetClient
           puppetClass: role_two
-          structuralObjectClass: device
 
           """), ldif.ldif())
 
@@ -328,7 +314,6 @@ class TestMysql2Ldif(object):
                objectClass: organizationalUnit
                ou: unix
                ou: posix
-               structuralObjectClass: organizationalUnit
 
                """), ldif.ldif())
 
@@ -344,7 +329,6 @@ class TestMysql2Ldif(object):
                dn: ou=groups,ou=posix,dc=org-one-infra,dc=net
                objectClass: organizationalUnit
                ou: groups
-               structuralObjectClass: organizationalUnit
 
                """), ldif.ldif())
 
@@ -360,7 +344,6 @@ class TestMysql2Ldif(object):
                dn: ou=users,ou=posix,dc=org-one-infra,dc=net
                objectClass: organizationalUnit
                ou: users
-               structuralObjectClass: organizationalUnit
 
                """), ldif.ldif())
 
@@ -468,7 +451,6 @@ class TestMysql2Ldif(object):
                sn: User
                sshPublicKey: pub key 1 user 1
                sshPublicKey: pub key 2 user 1
-               structuralObjectClass: inetOrgPerson
                uid: user_one
                uidNumber: 2001
                userPassword: {SHA}a63f1597e4efed34dc55d8355c6dc40610eee88e
@@ -485,7 +467,6 @@ class TestMysql2Ldif(object):
                objectClass: hostObject
                sn: Abled
                sshPublicKey: pub key 1 disabled user
-               structuralObjectClass: inetOrgPerson
                uid: disabled_user_one
                uidNumber: 2002
                userPassword: {MD5}!
@@ -502,7 +483,6 @@ class TestMysql2Ldif(object):
                objectClass: hostObject
                sn: Shell
                sshPublicKey: pub key 1 shelless user
-               structuralObjectClass: inetOrgPerson
                uid: no_shell_user
                uidNumber: 2003
                userPassword: {MD5}!
@@ -537,19 +517,16 @@ class TestMysql2Ldif(object):
                cn: user_one
                gidNumber: 2001
                objectClass: posixGroup
-               structuralObjectClass: posixGroup
 
                dn: cn=disabled_user_one,ou=groups,ou=posix,dc=org-one-infra,dc=net
                cn: disabled_user_one
                gidNumber: 2002
                objectClass: posixGroup
-               structuralObjectClass: posixGroup
 
                dn: cn=no_shell_user,ou=groups,ou=posix,dc=org-one-infra,dc=net
                cn: no_shell_user
                gidNumber: 2003
                objectClass: posixGroup
-               structuralObjectClass: posixGroup
 
                """),
             ldif.ldif())
@@ -566,7 +543,6 @@ class TestMysql2Ldif(object):
                dn: ou=hosts,dc=org-one-infra,dc=net
                objectClass: organizationalUnit
                ou: hosts
-               structuralObjectClass: organizationalUnit
 
                """), ldif.ldif())
 
@@ -601,67 +577,58 @@ class TestMysql2Ldif(object):
           dc: data_center_one
           objectClass: dcObject
           objectClass: dNSDomain
-          structuralObjectClass: dNSDomain
 
           dn: dc=data_center_two,dc=org-one-infra,dc=net,ou=hosts,dc=org-one-infra,dc=
            net
           dc: data_center_two
           objectClass: dcObject
           objectClass: dNSDomain
-          structuralObjectClass: dNSDomain
 
           dn: dc=int,dc=data_center_one,dc=org-one-infra,dc=net,ou=hosts,dc=org-one-in
            fra,dc=net
           dc: int
           objectClass: dcObject
           objectClass: dNSDomain
-          structuralObjectClass: dNSDomain
 
           dn: dc=int,dc=data_center_two,dc=org-one-infra,dc=net,ou=hosts,dc=org-one-in
            fra,dc=net
           dc: int
           objectClass: dcObject
           objectClass: dNSDomain
-          structuralObjectClass: dNSDomain
 
           dn: dc=net,ou=hosts,dc=org-one-infra,dc=net
           dc: net
           objectClass: dcObject
           objectClass: dNSDomain
-          structuralObjectClass: dNSDomain
 
           dn: dc=org-one-infra,dc=net,ou=hosts,dc=org-one-infra,dc=net
           dc: org-one-infra
           objectClass: dcObject
           objectClass: dNSDomain
-          structuralObjectClass: dNSDomain
 
           dn: dc=alt_device_one,dc=int,dc=data_center_one,dc=org-one-infra,dc=net,ou=h
            osts,dc=org-one-infra,dc=net
           aRecord: 192.168.1.101
           associatedDomain: alt_device_one.int.data_center_one.org-one-infra.net
           dc: alt_device_one
-          objectClass: domainRelatedObject
           objectClass: dNSDomain
-          structuralObjectClass: dNSDomain
+          objectClass: domainRelatedObject
 
           dn: dc=device_one,dc=int,dc=data_center_one,dc=org-one-infra,dc=net,ou=hosts
            ,dc=org-one-infra,dc=net
           aRecord: 192.168.1.101
           associatedDomain: device_one.int.data_center_one.org-one-infra.net
           dc: device_one
-          objectClass: domainRelatedObject
           objectClass: dNSDomain
-          structuralObjectClass: dNSDomain
+          objectClass: domainRelatedObject
 
           dn: dc=device_two,dc=int,dc=data_center_two,dc=org-one-infra,dc=net,ou=hosts
            ,dc=org-one-infra,dc=net
           aRecord: 192.168.1.102
           associatedDomain: device_two.int.data_center_two.org-one-infra.net
           dc: device_two
-          objectClass: domainRelatedObject
           objectClass: dNSDomain
-          structuralObjectClass: dNSDomain
+          objectClass: domainRelatedObject
 
           """), ldif.ldif())
 
@@ -677,7 +644,6 @@ class TestMysql2Ldif(object):
                dn: ou=sudoers,dc=org-one-infra,dc=net
                objectClass: organizationalUnit
                ou: sudoers
-               structuralObjectClass: organizationalUnit
 
                """), ldif.ldif())
 
@@ -694,7 +660,6 @@ class TestMysql2Ldif(object):
                cn: defaults
                description: Default sudo options
                objectClass: sudoRole
-               structuralObjectClass: sudoRole
 
                """), ldif.ldif())
 
@@ -748,7 +713,6 @@ class TestMysql2Ldif(object):
             cn: team_device_team_one_sudo_role_1
             description: sudo_role_1 sudo role
             objectClass: sudoRole
-            structuralObjectClass: sudoRole
             sudoCommand: ls
             sudoCommand: mv
             sudoHost: device_four
@@ -810,7 +774,6 @@ class TestMysql2Ldif(object):
             cn: team_role_team_one_sudo_role_1
             description: sudo_role_1 sudo role
             objectClass: sudoRole
-            structuralObjectClass: sudoRole
             sudoCommand: ls
             sudoCommand: mv
             sudoHost: device_seven
@@ -872,7 +835,6 @@ class TestMysql2Ldif(object):
           cn: team_formation_team_one_sudo_role_1
           description: sudo_role_1 sudo role
           objectClass: sudoRole
-          structuralObjectClass: sudoRole
           sudoCommand: ls
           sudoCommand: mv
           sudoHost: device_one
@@ -934,7 +896,6 @@ class TestMysql2Ldif(object):
          cn: team_application_team_one_sudo_role_1
          description: sudo_role_1 sudo role
          objectClass: sudoRole
-         structuralObjectClass: sudoRole
          sudoCommand: ls
          sudoCommand: mv
          sudoHost: device_five
@@ -958,7 +919,6 @@ class TestMysql2Ldif(object):
                dn: ou=ldap,dc=org-one-infra,dc=net
                objectClass: organizationalUnit
                ou: ldap
-               structuralObjectClass: organizationalUnit
 
                """), ldif.ldif())
 
@@ -974,7 +934,6 @@ class TestMysql2Ldif(object):
                dn: ou=groups,ou=ldap,dc=org-one-infra,dc=net
                objectClass: organizationalUnit
                ou: groups
-               structuralObjectClass: organizationalUnit
 
                """), ldif.ldif())
 
@@ -1005,7 +964,6 @@ class TestMysql2Ldif(object):
                member: uid=pdns,ou=users,ou=ldap,dc=org-one-infra,dc=net
                member: uid=puppet,ou=users,ou=ldap,dc=org-one-infra,dc=net
                objectClass: groupOfNames
-               structuralObjectClass: groupOfNames
 
                """), ldif.ldif())
 
@@ -1021,7 +979,6 @@ class TestMysql2Ldif(object):
                dn: ou=users,ou=ldap,dc=org-one-infra,dc=net
                objectClass: organizationalUnit
                ou: users
-               structuralObjectClass: organizationalUnit
 
                """), ldif.ldif())
 
@@ -1048,7 +1005,6 @@ class TestMysql2Ldif(object):
                cn: pdns user
                objectClass: inetOrgPerson
                sn: pdns user
-               structuralObjectClass: inetOrgPerson
                uid: pdns
                userPassword: {SHA}953902cd692dc4e7e311b510aed9bba3d518968f
 
@@ -1056,7 +1012,6 @@ class TestMysql2Ldif(object):
                cn: puppet user
                objectClass: inetOrgPerson
                sn: puppet user
-               structuralObjectClass: inetOrgPerson
                uid: puppet
                userPassword: {SHA}566e5ce5cf3251c39958b4735d7572d869de15b3
 
@@ -1074,7 +1029,6 @@ class TestMysql2Ldif(object):
                dn: ou=hiera,dc=org-one-infra,dc=net
                objectClass: organizationalUnit
                ou: hiera
-               structuralObjectClass: organizationalUnit
 
                """), ldif.ldif())
 
@@ -1104,26 +1058,22 @@ class TestMysql2Ldif(object):
           objectClass: organizationalUnit
           objectClass: top
           ou: dfw01
-          structuralObjectClass: organizationalUnit
 
           dn: ou=fqdn,ou=hiera,dc=org-one-infra,dc=net
           objectClass: organizationalUnit
           objectClass: top
           ou: fqdn
-          structuralObjectClass: organizationalUnit
 
           dn: ou=production,ou=hiera,dc=org-one-infra,dc=net
           objectClass: organizationalUnit
           objectClass: top
           ou: production
-          structuralObjectClass: organizationalUnit
 
           dn: cn=bob.dfw01.bitlancer-example.net,ou=fqdn,ou=hiera,dc=org-one-infra,dc=
            net
           description: {"mysql_server_id": "10"}
           objectClass: device
           objectClass: top
-          structuralObjectClass: device
 
           dn: cn=common,ou=production,ou=hiera,dc=org-one-infra,dc=net
           description: {"ldap_pdns_password": "ldap pdns passwd!", "ldap_pdns_username
@@ -1131,13 +1081,11 @@ class TestMysql2Ldif(object):
            name": "puppet"}
           objectClass: device
           objectClass: top
-          structuralObjectClass: device
 
           dn: cn=common,ou=dfw01,ou=production,ou=hiera,dc=org-one-infra,dc=net
           description: {"dns_server": ["10.10.10.10", "10.10.10.11"]}
           objectClass: device
           objectClass: top
-          structuralObjectClass: device
 
           """), ldif.ldif())
 
@@ -1156,7 +1104,6 @@ class TestMysql2Ldif(object):
                dn: ou=librarian,dc=org-one-infra,dc=net
                objectClass: organizationalUnit
                ou: librarian
-               structuralObjectClass: organizationalUnit
 
                """), ldif.ldif())
 
@@ -1186,13 +1133,11 @@ class TestMysql2Ldif(object):
                objectClass: organizationalUnit
                objectClass: top
                ou: bitlancer
-               structuralObjectClass: organizationalUnit
 
                dn: ou=puppetlabs,ou=librarian,dc=org-one-infra,dc=net
                objectClass: organizationalUnit
                objectClass: top
                ou: puppetlabs
-               structuralObjectClass: organizationalUnit
 
                dn: cn=mysql,ou=bitlancer,ou=librarian,dc=org-one-infra,dc=net
                description: {"name": "bitlancer/mysql", "path": "feature/great-new-feature"
@@ -1200,14 +1145,12 @@ class TestMysql2Ldif(object):
                 }
                objectClass: device
                objectClass: top
-               structuralObjectClass: device
 
                dn: cn=ntp,ou=puppetlabs,ou=librarian,dc=org-one-infra,dc=net
                description: {"name": "puppetlabs/ntp", "path": null, "reference": null, "ty
                 pe": "git", "url": "git://something/somethingelse"}
                objectClass: device
                objectClass: top
-               structuralObjectClass: device
 
                """),
             ldif.ldif())

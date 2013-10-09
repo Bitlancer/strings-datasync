@@ -74,7 +74,6 @@ def dump_organization(organization_id, db, ldif_writer):
    ldif_writer.unparse(dn=org_dn,
                        attrs=dict(objectClass=['organization',
                                                'dcObject'],
-                                  structuralObjectClass=['organization'],
                                   o=[full_name],
                                   dc=[_org_dc_from_dn(org_dn)]))
    return build_dn(org_dn, ldif_writer)
@@ -88,7 +87,6 @@ def dump_people_ou(ldif_writer):
    ldif_writer.unparse(dn='ou=people',
                        attrs=dict(
          objectClass=['organizationalUnit'],
-         structuralObjectClass=['organizationalUnit'],
          ou=['people']))
    return build_dn('ou=people', ldif_writer)
 
@@ -101,8 +99,7 @@ def dump_people_groups_ou(ldif_writer):
    ldif_writer.unparse(dn='ou=groups',
                        attrs=dict(
          ou=['groups'],
-         objectClass=['organizationalUnit'],
-         structuralObjectClass=['organizationalUnit']))
+         objectClass=['organizationalUnit']))
    return build_dn('ou=groups', ldif_writer)
 
 
@@ -133,7 +130,6 @@ def dump_people_groups(organization_id, member_dn, db, ldif_writer):
                              attrs=dict(
                cn=[team_name],
                objectClass=['top', 'groupOfNames'],
-               structuralObjectClass=['groupOfNames'],
                member=[_format_member(member_name,
                                       member_dn)
                        for member_name
@@ -149,8 +145,7 @@ def dump_people_users_ou(ldif_writer):
    ldif_writer.unparse(dn='ou=users',
                        attrs=dict(
          ou=['users'],
-         objectClass=['organizationalUnit'],
-         structuralObjectClass=['organizationalUnit']))
+         objectClass=['organizationalUnit']))
    return build_dn('ou=users', ldif_writer)
 
 
@@ -165,7 +160,6 @@ def dump_people_users(organization_id, db, ldif_writer):
       ldif_writer.unparse(
          dn="uid=%s" % user['name'],
          attrs=dict(objectClass=['inetOrgPerson'],
-                    structuralObjectClass=['inetOrgPerson'],
                     cn=[' '.join([user['first_name'],
                                   user['last_name']])],
                     sn=[user['last_name']],
@@ -182,8 +176,7 @@ def dump_nodes_ou(ldif_writer):
    ldif_writer.unparse(
       dn='ou=nodes',
       attrs=dict(ou=['nodes'],
-                 objectClass=['organizationalUnit'],
-                 structuralObjectClass=['organizationalUnit']))
+                 objectClass=['organizationalUnit']))
    return build_dn('ou=nodes', ldif_writer)
 
 
@@ -211,7 +204,6 @@ def dump_data_centers(organization_id, db, ldif_writer):
       ldif_writer.unparse(
          dn='ou=%s' % data_center,
          attrs=dict(objectClass=['organizationalUnit'],
-                    structuralObjectClass=['organizationalUnit'],
                     ou=[data_center]))
 
 
@@ -238,7 +230,6 @@ def dump_devices(organization_id, db, ldif_writer):
       ldif_writer.unparse(
          dn="cn=%s,ou=%s" % (fqdn, _data_center(fqdn)),
          attrs=dict(objectClass=['device', 'puppetClient'],
-                    structuralObjectClass=['device'],
                     description=[device['role']],
                     puppetClass=[device['role']],
                     cn=[fqdn]))
@@ -253,7 +244,6 @@ def dump_posix_ou(ldif_writer):
    ldif_writer.unparse(
       dn='ou=posix',
       attrs=dict(ou=['unix', 'posix'],
-                 structuralObjectClass=['organizationalUnit'],
                  objectClass=['organizationalUnit']))
    return build_dn('ou=posix', ldif_writer)
 
@@ -271,7 +261,6 @@ def dump_posix_groups_ou(ldif_writer):
    ldif_writer.unparse(
       dn='ou=groups',
       attrs=dict(ou=['groups'],
-                 structuralObjectClass=['organizationalUnit'],
                  objectClass=['organizationalUnit']))
    return build_dn('ou=groups', ldif_writer)
 
@@ -292,8 +281,7 @@ def dump_posix_groups(organization_id, db, ldif_writer):
          dn="cn=%s" % name,
          attrs=dict(cn=[name],
                     gidNumber=[gid],
-                    objectClass=['posixGroup'],
-                    structuralObjectClass=['posixGroup']))
+                    objectClass=['posixGroup']))
 
 
 def dump_posix_users_ou(ldif_writer):
@@ -309,7 +297,6 @@ def dump_posix_users_ou(ldif_writer):
    ldif_writer.unparse(
       dn='ou=users',
       attrs=dict(ou=['users'],
-                 structuralObjectClass=['organizationalUnit'],
                  objectClass=['organizationalUnit']))
    return build_dn('ou=users', ldif_writer)
 
@@ -340,8 +327,7 @@ def dump_hosts_ou(ldif_writer):
    ldif_writer.unparse(
       dn='ou=hosts',
       attrs=dict(ou=['hosts'],
-                 objectClass=['organizationalUnit'],
-                 structuralObjectClass=['organizationalUnit']))
+                 objectClass=['organizationalUnit']))
    return build_dn('ou=hosts', ldif_writer)
 
 
@@ -363,8 +349,7 @@ def dump_hosts_with_partials(organization_id, db, ldif_writer):
    for fqdn, addy in device_fqdns_addys:
       ldif_writer.unparse(
          dn=','.join(['dc=%s' % s for s in fqdn.split('.')]),
-         attrs=dict(objectClass=['domainRelatedObject', 'dNSDomain'],
-                    structuralObjectClass=['dNSDomain'],
+         attrs=dict(objectClass=['dNSDomain', 'domainRelatedObject'],
                     dc=[fqdn.split('.')[0]],
                     associatedDomain=[fqdn],
                     aRecord=[addy]))
@@ -377,7 +362,6 @@ def dump_sudoers_ou(ldif_writer):
    ldif_writer.unparse(
       dn='ou=sudoers',
       attrs=dict(ou=['sudoers'],
-                 structuralObjectClass=['organizationalUnit'],
                  objectClass=['organizationalUnit']))
    return build_dn('ou=sudoers', ldif_writer)
 
@@ -391,7 +375,6 @@ def dump_sudoers_defaults(ldif_writer):
    ldif_writer.unparse(
       dn='cn=defaults',
       attrs=dict(cn=['defaults'],
-                 structuralObjectClass=['sudoRole'],
                  objectClass=['sudoRole'],
                  description=['Default sudo options']))
 
@@ -486,7 +469,6 @@ def dump_hiera_ou(ldif_writer):
    ldif_writer.unparse(
       dn='ou=hiera',
       attrs=dict(ou=['hiera'],
-                 structuralObjectClass=['organizationalUnit'],
                  objectClass=['organizationalUnit']))
    return build_dn('ou=hiera', ldif_writer)
 
@@ -499,7 +481,6 @@ def dump_librarian_ou(ldif_writer):
    ldif_writer.unparse(
       dn='ou=librarian',
       attrs=dict(ou=['librarian'],
-                 structuralObjectClass=['organizationalUnit'],
                  objectClass=['organizationalUnit']))
    return build_dn('ou=librarian', ldif_writer)
 
@@ -559,7 +540,6 @@ def _dump_hiera_val(key, vars_vals, ldif_writer):
    ldif_writer.unparse(
       dn=_dn_from_hiera_key(key),
       attrs=dict(objectClass=['device', 'top'],
-                 structuralObjectClass=['device'],
                  description=[_descrip_from_hiera_vars_vals(vars_vals)]))
 
 
@@ -587,8 +567,7 @@ def _dump_hiera_ou_names(ou_names, ldif_writer):
       ldif_writer.unparse(
          dn=ou_name,
          attrs=dict(ou=[top],
-                    objectClass=['organizationalUnit', 'top'],
-                    structuralObjectClass=['organizationalUnit']))
+                    objectClass=['organizationalUnit', 'top']))
 
 
 def _gen_hiera_ou_names(hiera_key):
@@ -678,7 +657,6 @@ def _dump_librarian_entry(librarian_info, ldif_writer):
    ldif_writer.unparse(
       dn=_dn_from_librarian_name(librarian_info.name),
       attrs=dict(objectClass=['device', 'top'],
-                 structuralObjectClass=['device'],
                  description=[_descrip_from_librarian_info(librarian_info)]))
 
 
@@ -701,8 +679,7 @@ def _dump_librarian_ou_names(ou_names, ldif_writer):
       ldif_writer.unparse(
          dn="ou=%s" % ou_name,
          attrs=dict(ou=[ou_name],
-                    objectClass=['organizationalUnit', 'top'],
-                    structuralObjectClass=['organizationalUnit']))
+                    objectClass=['organizationalUnit', 'top']))
 
 
 def _select_librarian_infos(organization_id, db):
@@ -740,7 +717,6 @@ def _dump_sudo_tids_dnames(sudo, cn_template,
          dn='cn=%s' % cn,
          attrs=dict(cn=[cn],
                     objectClass=['sudoRole'],
-                    structuralObjectClass=['sudoRole'],
                     sudoCommand=sorted(sudo['sudo_command']),
                     sudoHost=sorted(device_names),
                     sudoRunAs=sorted(sudo['sudo_run_as']),
@@ -797,7 +773,6 @@ def dump_ldap_ou(ldif_writer):
    ldif_writer.unparse(
       dn='ou=ldap',
       attrs=dict(ou=['ldap'],
-                 structuralObjectClass=['organizationalUnit'],
                  objectClass=['organizationalUnit']))
    return build_dn('ou=ldap', ldif_writer)
 
@@ -810,7 +785,6 @@ def dump_ldap_groups_ou(ldif_writer):
    ldif_writer.unparse(
       dn='ou=groups',
       attrs=dict(ou=['groups'],
-                 structuralObjectClass=['organizationalUnit'],
                  objectClass=['organizationalUnit']))
    return build_dn('ou=groups', ldif_writer)
 
@@ -828,7 +802,6 @@ def dump_ldap_ro_group(organization_id, member_dn, db, ldif_writer):
       dn='cn=ro',
       attrs=dict(cn=['ro'],
                  objectClass=['groupOfNames'],
-                 structuralObjectClass=['groupOfNames'],
                  member=['uid=%s,%s' % (ldap_name_and_password[0], member_dn)
                          for ldap_name_and_password
                          in _select_ldap_names_and_passwords(organization_id,
@@ -843,7 +816,6 @@ def dump_ldap_users_ou(ldif_writer):
    ldif_writer.unparse(
       dn='ou=users',
       attrs=dict(ou=['users'],
-                 structuralObjectClass=['organizationalUnit'],
                  objectClass=['organizationalUnit']))
    return build_dn('ou=users', ldif_writer)
 
@@ -862,7 +834,6 @@ def dump_ldap_users(organization_id, db, ldif_writer):
          dn='uid=%s' % uname,
          attrs=dict(uid=[uname],
                     objectClass=['inetOrgPerson'],
-                    structuralObjectClass=['inetOrgPerson'],
                     cn=['%s user' % uname],
                     sn=['%s user' % uname],
                     userPassword=['{SHA}%s' % _sha1(password)]))
@@ -1020,8 +991,7 @@ def _dump_dc_objects(device_fqdns_addys, ldif_writer):
       ldif_writer.unparse(
          dn=','.join(['dc=%s' % d for d in dc_object]),
          attrs=dict(dc=[dc],
-                    objectClass=['dcObject', 'dNSDomain'],
-                    structuralObjectClass=['dNSDomain']))
+                    objectClass=['dcObject', 'dNSDomain']))
 
 
 def _dc_objects_from_fqdn(fqdn):
@@ -1315,7 +1285,6 @@ def _dump_posix_user_to_ldif(user, ldif_writer):
                               'posixAccount',
                               'authorizedServiceObject',
                               'hostObject'],
-                 structuralObjectClass=['inetOrgPerson'],
                  uidNumber=[user['posix_uid_num']],
                  gidNumber=[user['posix_uid_num']],
                  loginShell=[user['posix_login_shell']],
