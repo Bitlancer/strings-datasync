@@ -657,6 +657,7 @@ def _dump_librarian_entry(librarian_info, ldif_writer):
    ldif_writer.unparse(
       dn=_dn_from_librarian_name(librarian_info.name),
       attrs=dict(objectClass=['device', 'top'],
+                 cn=[librarian_info.name.split('/')[1]],
                  description=[_descrip_from_librarian_info(librarian_info)]))
 
 

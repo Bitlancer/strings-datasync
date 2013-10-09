@@ -1140,6 +1140,7 @@ class TestMysql2Ldif(object):
                ou: puppetlabs
 
                dn: cn=mysql,ou=bitlancer,ou=librarian,dc=org-one-infra,dc=net
+               cn: mysql
                description: {"name": "bitlancer/mysql", "path": "feature/great-new-feature"
                 , "reference": "1.1", "type": "git", "url": "git://something/somethingelse"
                 }
@@ -1147,6 +1148,7 @@ class TestMysql2Ldif(object):
                objectClass: top
 
                dn: cn=ntp,ou=puppetlabs,ou=librarian,dc=org-one-infra,dc=net
+               cn: ntp
                description: {"name": "puppetlabs/ntp", "path": null, "reference": null, "ty
                 pe": "git", "url": "git://something/somethingelse"}
                objectClass: device
