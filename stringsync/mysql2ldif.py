@@ -404,8 +404,6 @@ def dump_sudoers(organization_id, db, ldif_writer):
                                            AND
                                          t.is_disabled IS FALSE
                                            AND
-                                         d.status = 'active'
-                                           AND
                                          d.can_sync_to_ldap = 1
                                            AND
                                          dt.name = 'instance'
@@ -428,8 +426,6 @@ def dump_sudoers(organization_id, db, ldif_writer):
                                            AND
                                          t.is_disabled IS FALSE
                                            AND
-                                         d.status = 'active'
-                                           AND
                                          d.can_sync_to_ldap = 1
                                            AND
                                          dt.name = 'instance'
@@ -451,8 +447,6 @@ def dump_sudoers(organization_id, db, ldif_writer):
                                    sudo_id = %(sudo_id)s
                                      AND
                                    t.is_disabled IS FALSE
-                                     AND
-                                   d.status = 'active'
                                      AND
                                    d.can_sync_to_ldap = 1
                                      AND
@@ -477,8 +471,6 @@ def dump_sudoers(organization_id, db, ldif_writer):
                                sudo_id = %(sudo_id)s
                                  AND
                                t.is_disabled IS FALSE
-                                  AND
-                               d.status = 'active'
                                   AND
                                d.can_sync_to_ldap = 1
                                   AND
@@ -796,8 +788,6 @@ def _select_sudo_team_ids_device_names(organization_id, sudo_id, db):
                       AND
                     sudo_id = %(sudo_id)s
                       AND
-                    d.status = 'active'
-                      AND
                     d.can_sync_to_ldap = 1
                       AND
                     dt.name = 'instance'
@@ -1057,8 +1047,6 @@ def _select_device_info_for_hosts(dns_attr, organization_id, db):
                       AND
                     da.var IN ('dns.internal.fqdn', '{dns_attr}')
                       AND
-                    d.status = 'active'
-                      AND
                     d.can_sync_to_ldap = 1
                       AND
                     dt.name = 'instance'
@@ -1248,8 +1236,6 @@ def _hosts_for_posix_user(user_id, organization_id, db):
                        AND
                      da.var = 'dns.external.fqdn'
                        AND
-                     d.status = 'active'
-                       AND
                      d.can_sync_to_ldap = 1
                        AND
                      dt.name = 'instance'
@@ -1278,8 +1264,6 @@ def _hosts_for_posix_user(user_id, organization_id, db):
                        AND
                      da.var = 'dns.external.fqdn'
                        AND
-                     d.status = 'active'
-                       AND
                      d.can_sync_to_ldap = 1
                        AND
                      dt.name = 'instance'
@@ -1306,8 +1290,6 @@ def _hosts_for_posix_user(user_id, organization_id, db):
                        AND
                      da.var = 'dns.external.fqdn'
                        AND
-                     d.status = 'active'
-                       AND
                      d.can_sync_to_ldap = 1
                        AND
                      dt.name = 'instance'
@@ -1333,8 +1315,6 @@ def _hosts_for_posix_user(user_id, organization_id, db):
                      u.id = %(user_id)s
                        AND
                      da.var = 'dns.external.fqdn'
-                       AND
-                     d.status = 'active'
                        AND
                      d.can_sync_to_ldap = 1
                        AND
@@ -1429,8 +1409,6 @@ def _select_devices(organization_id, db):
                WHERE a.var = 'dns.external.fqdn'
                        AND
                      d.organization_id = %(organization_id)s
-                       AND
-                     status = 'active'
                       AND
                     d.can_sync_to_ldap = 1
                       AND
