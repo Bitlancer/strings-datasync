@@ -396,11 +396,19 @@ def dump_sudoers(organization_id, db, ldif_writer):
                                           ON t.id = td.team_id
                                    INNER JOIN device d
                                           ON td.device_id = d.id
+                                   INNER JOIN device_type dt
+                                          ON dt.id = d.device_type_id
                                    WHERE t.organization_id = %(organization_id)s
                                            AND
                                          sudo_id = %(sudo_id)s
                                            AND
                                          t.is_disabled IS FALSE
+                                           AND
+                                         d.status = 'active'
+                                           AND
+                                         d.can_sync_to_ldap = 1
+                                           AND
+                                         dt.name = 'instance'
                                    """,
                                    'team_device_%s_%s'),
                                   ("""
@@ -412,11 +420,19 @@ def dump_sudoers(organization_id, db, ldif_writer):
                                           ON t.id = tr.team_id
                                    INNER JOIN device d
                                           ON tr.role_id = d.role_id
+                                   INNER JOIN device_type dt
+                                          ON dt.id = d.device_type_id
                                    WHERE t.organization_id = %(organization_id)s
                                            AND
                                          sudo_id = %(sudo_id)s
                                            AND
                                          t.is_disabled IS FALSE
+                                           AND
+                                         d.status = 'active'
+                                           AND
+                                         d.can_sync_to_ldap = 1
+                                           AND
+                                         dt.name = 'instance'
                                    """,
                                    "team_role_%s_%s"),
                                   ("""
@@ -428,11 +444,19 @@ def dump_sudoers(organization_id, db, ldif_writer):
                                     ON t.id = tf.team_id
                              INNER JOIN device d
                                     ON tf.formation_id = d.formation_id
+                             INNER JOIN device_type dt
+                                    ON dt.id = d.device_type_id
                              WHERE t.organization_id = %(organization_id)s
                                      AND
                                    sudo_id = %(sudo_id)s
                                      AND
                                    t.is_disabled IS FALSE
+                                     AND
+                                   d.status = 'active'
+                                     AND
+                                   d.can_sync_to_ldap = 1
+                                     AND
+                                   dt.name = 'instance'
                                    """,
                                    "team_formation_%s_%s"),
                                   ("""
@@ -446,11 +470,19 @@ def dump_sudoers(organization_id, db, ldif_writer):
                                 ON af.application_id = ta.application_id
                          INNER JOIN device d
                                 ON af.formation_id = d.formation_id
+                         INNER JOIN device_type dt
+                                ON dt.id = d.device_type_id
                          WHERE t.organization_id = %(organization_id)s
                                  AND
                                sudo_id = %(sudo_id)s
                                  AND
                                t.is_disabled IS FALSE
+                                  AND
+                               d.status = 'active'
+                                  AND
+                               d.can_sync_to_ldap = 1
+                                  AND
+                               dt.name = 'instance'
                                    """,
                                    "team_application_%s_%s")]:
          tids_dnames = select_rows(db,
@@ -758,9 +790,17 @@ def _select_sudo_team_ids_device_names(organization_id, sudo_id, db):
                      ON td.id = tds.team_device_id
                    INNER JOIN device d
                      ON td.device_id = d.id
+                   INNER JOIN device_type dt
+                     ON dt.id = d.device_type_id
               WHERE organization_id = %(organization_id)s
                       AND
                     sudo_id = %(sudo_id)s
+                      AND
+                    d.status = 'active'
+                      AND
+                    d.can_sync_to_ldap = 1
+                      AND
+                    dt.name = 'instance'
             """
    return select_rows(db, select, dict(organization_id=organization_id,
                                        sudo_id=sudo_id))
@@ -1198,6 +1238,8 @@ def _hosts_for_posix_user(user_id, organization_id, db):
                        ON tf.formation_id = d.formation_id
                      INNER JOIN device_attribute da
                        ON da.device_id = d.id
+                     INNER JOIN device_type dt
+                       ON dt.id = d.device_type_id
                WHERE t.is_disabled IS FALSE
                        AND
                      t.organization_id = %(organization_id)s
@@ -1205,6 +1247,12 @@ def _hosts_for_posix_user(user_id, organization_id, db):
                      u.id = %(user_id)s
                        AND
                      da.var = 'dns.external.fqdn'
+                       AND
+                     d.status = 'active'
+                       AND
+                     d.can_sync_to_ldap = 1
+                       AND
+                     dt.name = 'instance'
               """,
               """
               SELECT da.val
@@ -1220,6 +1268,8 @@ def _hosts_for_posix_user(user_id, organization_id, db):
                        ON af.formation_id = d.formation_id
                      INNER JOIN device_attribute da
                        ON da.device_id = d.id
+                     INNER JOIN device_type dt
+                       ON dt.id = d.device_type_id
                WHERE t.is_disabled IS FALSE
                        AND
                      t.organization_id = %(organization_id)s
@@ -1227,6 +1277,12 @@ def _hosts_for_posix_user(user_id, organization_id, db):
                      u.id = %(user_id)s
                        AND
                      da.var = 'dns.external.fqdn'
+                       AND
+                     d.status = 'active'
+                       AND
+                     d.can_sync_to_ldap = 1
+                       AND
+                     dt.name = 'instance'
               """,
               """
               SELECT da.val
@@ -1238,6 +1294,10 @@ def _hosts_for_posix_user(user_id, organization_id, db):
                        ON td.team_id = t.id
                      INNER JOIN device_attribute da
                        ON da.device_id = td.device_id
+                     INNER JOIN device d
+                       ON td.device_id = d.id
+                     INNER JOIN device_type dt
+                       ON dt.id = d.device_type_id
                WHERE t.is_disabled IS FALSE
                        AND
                      t.organization_id = %(organization_id)s
@@ -1245,6 +1305,12 @@ def _hosts_for_posix_user(user_id, organization_id, db):
                      u.id = %(user_id)s
                        AND
                      da.var = 'dns.external.fqdn'
+                       AND
+                     d.status = 'active'
+                       AND
+                     d.can_sync_to_ldap = 1
+                       AND
+                     dt.name = 'instance'
               """,
               """
               SELECT da.val
@@ -1258,6 +1324,8 @@ def _hosts_for_posix_user(user_id, organization_id, db):
                        ON tr.role_id = d.role_id
                      INNER JOIN device_attribute da
                        ON da.device_id = d.id
+                     INNER JOIN device_type dt
+                       ON dt.id = d.device_type_id
                WHERE t.is_disabled IS FALSE
                        AND
                      t.organization_id = %(organization_id)s
@@ -1265,6 +1333,12 @@ def _hosts_for_posix_user(user_id, organization_id, db):
                      u.id = %(user_id)s
                        AND
                      da.var = 'dns.external.fqdn'
+                       AND
+                     d.status = 'active'
+                       AND
+                     d.can_sync_to_ldap = 1
+                       AND
+                     dt.name = 'instance'
               """]
    hosts = []
    for select in selects:
