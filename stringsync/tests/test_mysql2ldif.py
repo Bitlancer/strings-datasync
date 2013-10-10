@@ -448,6 +448,7 @@ class TestMysql2Ldif(object):
                objectClass: posixAccount
                objectClass: authorizedServiceObject
                objectClass: hostObject
+               objectClass: ldapPublicKey
                sn: User
                sshPublicKey: pub key 1 user 1
                sshPublicKey: pub key 2 user 1
@@ -465,6 +466,7 @@ class TestMysql2Ldif(object):
                objectClass: posixAccount
                objectClass: authorizedServiceObject
                objectClass: hostObject
+               objectClass: ldapPublicKey
                sn: Abled
                sshPublicKey: pub key 1 disabled user
                uid: disabled_user_one
@@ -481,6 +483,7 @@ class TestMysql2Ldif(object):
                objectClass: posixAccount
                objectClass: authorizedServiceObject
                objectClass: hostObject
+               objectClass: ldapPublicKey
                sn: Shell
                sshPublicKey: pub key 1 shelless user
                uid: no_shell_user
