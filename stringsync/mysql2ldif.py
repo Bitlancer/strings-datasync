@@ -568,6 +568,7 @@ def _dump_hiera_val(key, vars_vals, ldif_writer):
    ldif_writer.unparse(
       dn=_dn_from_hiera_key(key),
       attrs=dict(objectClass=['device', 'top'],
+                 cn=[key.split('/')[-1]],
                  description=[_descrip_from_hiera_vars_vals(vars_vals)]))
 
 

@@ -1078,11 +1078,13 @@ class TestMysql2Ldif(object):
 
           dn: cn=bob.dfw01.bitlancer-example.net,ou=fqdn,ou=hiera,dc=org-one-infra,dc=
            net
+          cn: bob.dfw01.bitlancer-example.net
           description: {"mysql_server_id": "10"}
           objectClass: device
           objectClass: top
 
           dn: cn=common,ou=production,ou=hiera,dc=org-one-infra,dc=net
+          cn: common
           description: {"ldap_pdns_password": "ldap pdns passwd!", "ldap_pdns_username
            ": "pdns", "ldap_puppet_password": "ldap puppet passwd!", "ldap_puppet_user
            name": "puppet"}
@@ -1090,6 +1092,7 @@ class TestMysql2Ldif(object):
           objectClass: top
 
           dn: cn=common,ou=dfw01,ou=production,ou=hiera,dc=org-one-infra,dc=net
+          cn: common
           description: {"dns_server": ["10.10.10.10", "10.10.10.11"]}
           objectClass: device
           objectClass: top
