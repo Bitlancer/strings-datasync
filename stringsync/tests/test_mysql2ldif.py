@@ -864,6 +864,9 @@ class TestMysql2Ldif(object):
         # device 5 is in formation 3
         f.f_device_5(self.conn)
 
+        # device 10 is in formation 3
+        f.f_device_10(self.conn)
+
         f.f_team_1_application_1(self.conn)
 
         # team 1 application 1 has sudo 1
@@ -902,6 +905,7 @@ class TestMysql2Ldif(object):
          sudoCommand: ls
          sudoCommand: mv
          sudoHost: device_five
+         sudoHost: device_ten
          sudoOption: sudo_opt_1
          sudoOption: sudo_opt_2
          sudoRunAs: bob

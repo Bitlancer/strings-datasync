@@ -407,6 +407,7 @@ def dump_sudoers(organization_id, db, ldif_writer):
                                          d.can_sync_to_ldap = 1
                                            AND
                                          dt.name = 'instance'
+                                   ORDER BY t.id
                                    """,
                                    'team_device_%s_%s'),
                                   ("""
@@ -429,52 +430,55 @@ def dump_sudoers(organization_id, db, ldif_writer):
                                          d.can_sync_to_ldap = 1
                                            AND
                                          dt.name = 'instance'
+                                   ORDER BY t.id
                                    """,
                                    "team_role_%s_%s"),
                                   ("""
-                             SELECT t.id,
-                                    d.name
-                             FROM team_formation tf INNER JOIN team_formation_sudo tfs
-                                    ON tf.id = tfs.team_formation_id
-                             INNER JOIN team t
-                                    ON t.id = tf.team_id
-                             INNER JOIN device d
-                                    ON tf.formation_id = d.formation_id
-                             INNER JOIN device_type dt
-                                    ON dt.id = d.device_type_id
-                             WHERE t.organization_id = %(organization_id)s
-                                     AND
+                                   SELECT t.id,
+                                          d.name
+                                   FROM team_formation tf INNER JOIN team_formation_sudo tfs
+                                          ON tf.id = tfs.team_formation_id
+                                   INNER JOIN team t
+                                          ON t.id = tf.team_id
+                                   INNER JOIN device d
+                                          ON tf.formation_id = d.formation_id
+                                   INNER JOIN device_type dt
+                                          ON dt.id = d.device_type_id
+                                   WHERE t.organization_id = %(organization_id)s
+                                          AND
                                    sudo_id = %(sudo_id)s
-                                     AND
+                                          AND
                                    t.is_disabled IS FALSE
-                                     AND
+                                          AND
                                    d.can_sync_to_ldap = 1
-                                     AND
+                                          AND
                                    dt.name = 'instance'
+                                   ORDER BY t.id
                                    """,
                                    "team_formation_%s_%s"),
                                   ("""
-                         SELECT t.id,
-                                d.name
-                         FROM team_application ta INNER JOIN team_application_sudo tas
-                                ON ta.id = tas.team_application_id
-                         INNER JOIN team t
-                                ON t.id = ta.team_id
-                         INNER JOIN application_formation af
-                                ON af.application_id = ta.application_id
-                         INNER JOIN device d
-                                ON af.formation_id = d.formation_id
-                         INNER JOIN device_type dt
-                                ON dt.id = d.device_type_id
-                         WHERE t.organization_id = %(organization_id)s
-                                 AND
-                               sudo_id = %(sudo_id)s
-                                 AND
-                               t.is_disabled IS FALSE
-                                  AND
-                               d.can_sync_to_ldap = 1
-                                  AND
-                               dt.name = 'instance'
+                                   SELECT t.id,
+                                          d.name
+                                   FROM team_application ta INNER JOIN team_application_sudo tas
+                                          ON ta.id = tas.team_application_id
+                                   INNER JOIN team t
+                                          ON t.id = ta.team_id
+                                   INNER JOIN application_formation af
+                                          ON af.application_id = ta.application_id
+                                   INNER JOIN device d
+                                          ON af.formation_id = d.formation_id
+                                   INNER JOIN device_type dt
+                                          ON dt.id = d.device_type_id
+                                   WHERE t.organization_id = %(organization_id)s
+                                           AND
+                                         sudo_id = %(sudo_id)s
+                                           AND
+                                         t.is_disabled IS FALSE
+                                            AND
+                                         d.can_sync_to_ldap = 1
+                                            AND
+                                         dt.name = 'instance'
+                                   ORDER BY t.id
                                    """,
                                    "team_application_%s_%s")]:
          tids_dnames = select_rows(db,
@@ -731,8 +735,8 @@ def _select_librarian_infos(organization_id, db):
 
 def _dump_sudo_tids_dnames(sudo, cn_template,
                            tids_dnames, db, ldif_writer):
-   for team_id, tid_dnames in itertools.groupby(tids_dnames, lambda x: x[0]):
-      device_names = sorted(list(set([td[1] for td in tid_dnames])))
+   for team_id, tid_and_dnames in itertools.groupby(tids_dnames, lambda x: x[0]):
+      device_names = sorted(list(set([td[1] for td in tid_and_dnames])))
       team_name, members = _select_sudo_team_name_and_members(
          team_id,
          db)

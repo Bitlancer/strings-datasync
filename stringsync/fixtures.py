@@ -557,6 +557,14 @@ def f_device_5(conn):
                     formation_id=f_formation_3(conn))
 
 
+def f_device_10(conn):
+    return f_device(conn,
+                    organization_id=f_organization_1(conn),
+                    name="device_ten",
+                    role_id=f_role_2(conn),
+                    formation_id=f_formation_3(conn))
+
+
 def f_device_5_ex_fqdn(conn):
     return f_device_attribute(
         conn,
