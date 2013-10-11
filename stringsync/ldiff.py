@@ -47,7 +47,6 @@ above.
 
 from collections import namedtuple
 from multiprocessing import Queue, Process
-import sys
 
 from ldif import LDIFParser, LDIFWriter
 from ldap import modlist
@@ -243,9 +242,9 @@ class LDiffer(LDIFParser):
                 # old stream is already after the new stream lexically,
                 # and the cur_old_dn_entry hasn't been handled.
         except Exception, e:
-            print >> sys.stderr, "Error: ", e
-            print >> sys.stderr, "DN=", dn
-            print >> sys.stderr, "ENTRY=", entry
+            print "Error: ", e
+            print "DN=", dn
+            print "ENTRY=", entry
             raise
 
     def _is_old_dn_entry_same(self, dn):
