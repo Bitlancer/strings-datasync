@@ -47,6 +47,7 @@ above.
 
 from collections import namedtuple
 from multiprocessing import Queue, Process
+import sys
 
 from ldif import LDIFParser, LDIFWriter
 from ldap import modlist
@@ -217,29 +218,35 @@ class LDiffer(LDIFParser):
         """
         self.sort_enforcer.check_and_update(dn)
 
-        # If the current old ldif entry is lexically previous to the
-        # current new ldif entry, then there's no corresponding entry
-        # in the new ldif, and we should mark the old ldif entry as
-        # deleted and pull a new entry from the old ldif queue.
-        #
-        # We may have to do this multiple times until we catch the old
-        # ldif entries up with the new ones.
-        while self._is_old_dn_entry_prev(dn):
-            self.handler.handle_delete(self.cur_old_dn_entry)
-            self._pull_old_dn_entry()
+        try:
+            # If the current old ldif entry is lexically previous to the
+            # current new ldif entry, then there's no corresponding entry
+            # in the new ldif, and we should mark the old ldif entry as
+            # deleted and pull a new entry from the old ldif queue.
+            #
+            # We may have to do this multiple times until we catch the old
+            # ldif entries up with the new ones.
+            while self._is_old_dn_entry_prev(dn):
+                self.handler.handle_delete(self.cur_old_dn_entry)
+                self._pull_old_dn_entry()
 
-        if self._is_old_dn_entry_same(dn):
-            # we rely on the handle_change method in handler to be
-            # smart enough to recognize a no-op if the old and new
-            # entries are the same.
-            self.handler.handle_change(self.cur_old_dn_entry,
-                                       DnEntry(dn, entry))
-            self._pull_old_dn_entry()
-        else: # the old dn is lexically later than the new dn
-            self.handler.handle_add(DnEntry(dn, entry))
-            # don't pull the next old dn_entry on an add, as the the
-            # old stream is already after the new stream lexically,
-            # and the cur_old_dn_entry hasn't been handled.
+            if self._is_old_dn_entry_same(dn):
+                # we rely on the handle_change method in handler to be
+                # smart enough to recognize a no-op if the old and new
+                # entries are the same.
+                self.handler.handle_change(self.cur_old_dn_entry,
+                                           DnEntry(dn, entry))
+                self._pull_old_dn_entry()
+            else: # the old dn is lexically later than the new dn
+                self.handler.handle_add(DnEntry(dn, entry))
+                # don't pull the next old dn_entry on an add, as the the
+                # old stream is already after the new stream lexically,
+                # and the cur_old_dn_entry hasn't been handled.
+        except Exception, e:
+            print >> sys.stderr, "Error: ", e
+            print >> sys.stderr, "DN=", dn
+            print >> sys.stderr, "ENTRY=", entry
+            raise
 
     def _is_old_dn_entry_same(self, dn):
         """

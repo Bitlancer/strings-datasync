@@ -13,4 +13,5 @@ def dump_tree_sorted(ldap_server, base_domain, out_fil):
         # if the ldap tree is empty, this will get thrown, in which
         # case we want an empty ldif, so...good!
         pass
+
     diff_writer.commit()
