@@ -4,6 +4,7 @@ Dump the strings mysql data for a given organization to a full ldif.
 from ConfigParser import SafeConfigParser
 from collections import defaultdict, namedtuple
 import hashlib
+import base64
 import itertools
 import json
 import re
@@ -1558,7 +1559,7 @@ def _org_dc_from_dn(dn):
 def _sha1(s):
     sha1 = hashlib.sha1()
     sha1.update(s)
-    return sha1.hexdigest()
+    return base64.b64encode(sha1.digest())
 
 
 if __name__ == '__main__':
