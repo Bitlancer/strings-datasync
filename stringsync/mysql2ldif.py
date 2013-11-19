@@ -353,7 +353,8 @@ def dump_hosts_with_partials(organization_id, db, ldif_writer):
          attrs=dict(objectClass=['dNSDomain', 'domainRelatedObject'],
                     dc=[fqdn.split('.')[0]],
                     associatedDomain=[fqdn],
-                    aRecord=[addy]))
+                    aRecord=[addy],
+		    soaRecord=["ns01.dfw01.socius.strings-service.net it.bitlancer.com 1 1800 3600 86400 7200"]))
 
 
 def dump_sudoers_ou(ldif_writer):
