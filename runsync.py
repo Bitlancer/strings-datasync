@@ -10,7 +10,11 @@ from stringsync import db
 
 
 def _all_organization_ids(db_server):
-    sql = """SELECT id FROM organization"""
+    sql = """
+        SELECT id
+        FROM organization
+        WHERE can_sync_to_ldap = 1
+    """
     return [r[0] for r in db.select_rows(db_server, sql, dict())]
 
 
