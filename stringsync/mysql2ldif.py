@@ -37,7 +37,7 @@ def mysql2ldif(organization_id, db, out_fil):
          with dump_people_ou(org_ldif) as p_ldif:
             with dump_people_users_ou(p_ldif) as pu_ldif:
                pu_dn = full_dn(pu_ldif)
-               dump_people_users(organization_id, db, p_ldif)
+               dump_people_users(organization_id, db, pu_ldif)
             with dump_people_groups_ou(p_ldif) as pg_ldif:
                dump_people_groups(organization_id, pu_dn, db, pg_ldif)
          with dump_posix_ou(org_ldif) as pos_ldif:
@@ -751,7 +751,7 @@ def _dump_sudo_tids_dnames(sudo, cn_template,
                     objectClass=['sudoRole'],
                     sudoCommand=sorted(sudo['sudo_command']),
                     sudoHost=sorted(device_names),
-                    sudoRunAs=sorted(sudo['sudo_run_as']),
+                    sudoRunAsUser=sorted(sudo['sudo_run_as']),
                     sudoOption=sorted(sudo['sudo_option']),
                     description=sudo['description'],
                     sudoUser=sorted(members)))
