@@ -573,6 +573,7 @@ class TestMysql2Ldif(object):
         # make sure we don't return a new ldif
         eq_(None,
             dump_hosts_with_partials(org_1, self.conn, hosts_ldif))
+        print(ldif.ldif())
         eq_(dd(
           """\
           dn: dc=data_center_one,dc=org-one-infra,dc=net,ou=hosts,dc=org-one-infra,dc=
@@ -616,6 +617,8 @@ class TestMysql2Ldif(object):
           dc: alt_device_one
           objectClass: dNSDomain
           objectClass: domainRelatedObject
+          soaRecord: ns01.dfw01.socius.strings-service.net it.bitlancer.com 1 1800 360
+           0 86400 7200
 
           dn: dc=device_one,dc=int,dc=data_center_one,dc=org-one-infra,dc=net,ou=hosts
            ,dc=org-one-infra,dc=net
@@ -624,6 +627,8 @@ class TestMysql2Ldif(object):
           dc: device_one
           objectClass: dNSDomain
           objectClass: domainRelatedObject
+          soaRecord: ns01.dfw01.socius.strings-service.net it.bitlancer.com 1 1800 360
+           0 86400 7200
 
           dn: dc=device_two,dc=int,dc=data_center_two,dc=org-one-infra,dc=net,ou=hosts
            ,dc=org-one-infra,dc=net
@@ -632,6 +637,8 @@ class TestMysql2Ldif(object):
           dc: device_two
           objectClass: dNSDomain
           objectClass: domainRelatedObject
+          soaRecord: ns01.dfw01.socius.strings-service.net it.bitlancer.com 1 1800 360
+           0 86400 7200
 
           """), ldif.ldif())
 
@@ -722,8 +729,8 @@ class TestMysql2Ldif(object):
             sudoHost: device_six
             sudoOption: sudo_opt_1
             sudoOption: sudo_opt_2
-            sudoRunAs: bob
-            sudoRunAs: jim
+            sudoRunAsUser: bob
+            sudoRunAsUser: jim
             sudoUser: user_one
             sudoUser: user_two
 
@@ -782,8 +789,8 @@ class TestMysql2Ldif(object):
             sudoHost: device_seven
             sudoOption: sudo_opt_1
             sudoOption: sudo_opt_2
-            sudoRunAs: bob
-            sudoRunAs: jim
+            sudoRunAsUser: bob
+            sudoRunAsUser: jim
             sudoUser: user_one
 
             """), ldif.ldif())
@@ -843,8 +850,8 @@ class TestMysql2Ldif(object):
           sudoHost: device_one
           sudoOption: sudo_opt_1
           sudoOption: sudo_opt_2
-          sudoRunAs: bob
-          sudoRunAs: jim
+          sudoRunAsUser: bob
+          sudoRunAsUser: jim
           sudoUser: user_one
 
           """), ldif.ldif())
@@ -908,8 +915,8 @@ class TestMysql2Ldif(object):
          sudoHost: device_ten
          sudoOption: sudo_opt_1
          sudoOption: sudo_opt_2
-         sudoRunAs: bob
-         sudoRunAs: jim
+         sudoRunAsUser: bob
+         sudoRunAsUser: jim
          sudoUser: user_one
 
          """), ldif.ldif())
@@ -1013,14 +1020,14 @@ class TestMysql2Ldif(object):
                objectClass: inetOrgPerson
                sn: pdns user
                uid: pdns
-               userPassword: {SHA}953902cd692dc4e7e311b510aed9bba3d518968f
+               userPassword: {SHA}lTkCzWktxOfjEbUQrtm7o9UYlo8=
 
                dn: uid=puppet,ou=users,ou=ldap,dc=org-one-infra,dc=net
                cn: puppet user
                objectClass: inetOrgPerson
                sn: puppet user
                uid: puppet
-               userPassword: {SHA}566e5ce5cf3251c39958b4735d7572d869de15b3
+               userPassword: {SHA}Vm5c5c8yUcOZWLRzXXVy2GneFbM=
 
                """), ldif.ldif())
 
