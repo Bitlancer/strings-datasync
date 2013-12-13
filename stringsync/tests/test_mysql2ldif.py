@@ -573,7 +573,6 @@ class TestMysql2Ldif(object):
         # make sure we don't return a new ldif
         eq_(None,
             dump_hosts_with_partials(org_1, self.conn, hosts_ldif))
-        print(ldif.ldif())
         eq_(dd(
           """\
           dn: dc=data_center_one,dc=org-one-infra,dc=net,ou=hosts,dc=org-one-infra,dc=
