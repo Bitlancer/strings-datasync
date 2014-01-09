@@ -399,7 +399,6 @@ class DiffWriter(object):
         self.diff_fil.write('changetype: delete\n')
         self.diff_fil.write('\n')
 
-
 class LdapApplier(object):
     """
     A moderately intelligent bridge that interprets adds, changes, and
@@ -414,6 +413,14 @@ class LdapApplier(object):
         `ldap_server`: the server against which to run the changes
         """
         self.ldap_server = ldap_server
+        self.pending_deletions = []
+
+    def commit(self):
+        """
+        Commit all pending changes
+        """
+        for dn in self.pending_deletions:
+            self.ldap_server.delete_s(dn)
 
     def handle_add(self, dn_entry):
         """
@@ -445,7 +452,7 @@ class LdapApplier(object):
         Write the incremental ldif to delete the dn of the supplied
         entry.
         """
-        self.ldap_server.delete_s(dn_entry.dn)
+        self.pending_deletions.insert(0, dn_entry.dn)
 
 
 def ldiff_to_ldif(old_ldif_fil, new_ldif_fil, diff_fil):
@@ -479,6 +486,7 @@ def ldiff_and_apply(old_ldif_fil, new_ldif_fil, ldap_server):
     """
     ldap_applier = LdapApplier(ldap_server)
     _do_ldiff(old_ldif_fil, new_ldif_fil, ldap_applier)
+    ldap_applier.commit()
 
 
 def _do_ldiff(old_ldif_fil, new_ldif_fil, handler):

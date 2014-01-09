@@ -575,6 +575,8 @@ def _dump_hiera_val(key, vars_vals, ldif_writer):
 
 
 def _dn_from_hiera_key(hiera_key):
+   if not "/" in hiera_key:
+     return "cn=%s" % hiera_key
    segs = hiera_key.split('/')
    segs.reverse()
    return "cn=%s,%s" % (segs[0],
