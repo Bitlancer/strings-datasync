@@ -414,12 +414,22 @@ class LdapApplier(object):
         """
         self.ldap_server = ldap_server
         self.pending_deletions = []
+        self.pending_additions = []
+        self.pending_changes = []
 
     def commit(self):
         """
         Commit all pending changes
         """
-        for dn in self.pending_deletions:
+        for item in self.pending_additions:
+            dn, addition = item
+            self.ldap_server.add_s(dn, addition)
+        for item in self.pending_changes:
+            dn, changes = item
+            self.ldap_server.modify_s(dn, changes) 
+        # Apply deletes in reverse order to children within
+        # the ldap tree are deleted before their parents
+        for dn in reversed(self.pending_deletions):
             self.ldap_server.delete_s(dn)
 
     def handle_add(self, dn_entry):
@@ -427,7 +437,7 @@ class LdapApplier(object):
         Write an incremental ldif to add the supplied dn_entry.
         """
         addition = modlist.addModlist(dn_entry.entry)
-        self.ldap_server.add_s(dn_entry.dn, addition)
+        self.pending_additions.append((dn_entry.dn, addition))
 
     def handle_change(self, old_dn_entry, new_dn_entry):
         """
@@ -445,14 +455,14 @@ class LdapApplier(object):
 
         changes = modlist.modifyModlist(old_dn_entry.entry, new_dn_entry.entry)
         if changes:
-            self.ldap_server.modify_s(old_dn_entry.dn, changes)
+            self.pending_changes.append((old_dn_entry.dn, changes))
 
     def handle_delete(self, dn_entry):
         """
         Write the incremental ldif to delete the dn of the supplied
         entry.
         """
-        self.pending_deletions.insert(0, dn_entry.dn)
+        self.pending_deletions.append(dn_entry.dn)
 
 
 def ldiff_to_ldif(old_ldif_fil, new_ldif_fil, diff_fil):
