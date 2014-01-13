@@ -589,7 +589,15 @@ def _descrip_from_hiera_vars_vals(vars_vals):
    for var, var_val in itertools.groupby(vars_vals, lambda x: x[0]):
       var_val = list(var_val)
       if len(var_val) == 1:
-         to_json.append((var, var_val[0][1]))
+         # If the val contains json, we need to parse it,
+         # otherwise the call to dumps() will turn everything
+         # into a string
+         new_var_val = var_val[0][1]
+         try:
+             new_var_val = json.loads(var_val[0][1])
+         except ValueError:
+             new_var_val = var_val[0][1]
+         to_json.append((var, new_var_val))
       else:
          to_json.append((var, [v[1] for v in var_val]))
    return json.dumps(dict(to_json), sort_keys=True)
