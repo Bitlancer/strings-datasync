@@ -1,6 +1,7 @@
 from optparse import OptionParser
 from ConfigParser import SafeConfigParser
 import sys
+import traceback
 
 import ldap
 
@@ -72,11 +73,17 @@ def main():
                                            base_dn])
                 ldap_auth_pass = ldap_config_parser.get('sync', 'pass')
 
-                ldap_server = ldap.initialize(ldap_uri)
-                ldap_server.simple_bind_s(ldap_auth_name, ldap_auth_pass)
+                try:
 
-                sync_from_config(db_server, ldap_server,
+                    ldap_server = ldap.initialize(ldap_uri)
+                    ldap_server.simple_bind_s(ldap_auth_name, ldap_auth_pass)
+
+                    sync_from_config(db_server, ldap_server,
                                  organization_id, dry_run=dry_run_fil)
+
+                except:
+                    print("Sync failed for organization %s" % base_dn);
+                    traceback.print_exc(file=sys.stdout)
 
 
 if __name__ == '__main__':
