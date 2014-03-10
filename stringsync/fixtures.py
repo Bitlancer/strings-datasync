@@ -871,7 +871,7 @@ def f_hiera_prod_dfw01_common_dns_server_1(conn):
 def f_hiera_fqdn_bob_mysql_server_id(conn):
     return f_hiera(conn,
                    organization_id=f_organization_1(conn),
-                   hiera_key='fqdn/bob.dfw01.bitlancer-example.net',
+                   hiera_key='fqdn/bob.dfw01.strings-example.net',
                    var='mysql_server_id',
                    val='10')
 

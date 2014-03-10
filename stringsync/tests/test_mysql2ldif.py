@@ -1082,9 +1082,9 @@ class TestMysql2Ldif(object):
           objectClass: top
           ou: production
 
-          dn: cn=bob.dfw01.bitlancer-example.net,ou=fqdn,ou=hiera,dc=org-one-infra,dc=
+          dn: cn=bob.dfw01.strings-example.net,ou=fqdn,ou=hiera,dc=org-one-infra,dc=
            net
-          cn: bob.dfw01.bitlancer-example.net
+          cn: bob.dfw01.strings-example.net
           description: {"mysql_server_id": "10"}
           objectClass: device
           objectClass: top
