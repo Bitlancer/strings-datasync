@@ -3,7 +3,20 @@ yum groupinstall "Development Tools"
 INSTALL="yum -y install"
 
 $INSTALL python python-devel python-setuptools
-$INSTALL mysql mysql-devel mysql-server openldap-devel
+
+cat > /etc/yum.repos.d/mariadb.repo <<'END'
+# MariaDB 10.0 CentOS repository list - created 2014-05-02 14:02 UTC
+# http://mariadb.org/mariadb/repositories/
+[mariadb]
+name = MariaDB
+baseurl = http://yum.mariadb.org/10.0/centos6-amd64
+gpgkey=https://yum.mariadb.org/RPM-GPG-KEY-MariaDB
+gpgcheck=1
+END
+
+$INSTALL MariaDB-client MariaDB-server MariaDB-devel openldap-devel
+
+exit
 
 # This seemingly simple sequence of commands in fact took a ton of
 # work--getting pip and yum to agree isn't easy.  So, edit at your

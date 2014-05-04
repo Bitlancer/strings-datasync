@@ -92,6 +92,12 @@ def f_organization_1(conn):
     return f_organization(conn, name='Org One', short_name='OrgOne')
 
 
+def f_environment_1(conn):
+    return f_environment(conn, 
+                         organization_id=f_organization_1(conn),
+                         name="production")
+
+
 def f_module_source_apache(conn):
     return f_module_source(conn,
                            organization_id=f_organization_1(conn),
@@ -325,6 +331,7 @@ def f_membership_u1_dt(conn):
 def f_formation_1(conn):
     return f_formation(conn,
                        organization_id=f_organization_1(conn),
+                       environment_id=f_environment_1(conn),
                        name="formation_one")
 
 
@@ -377,12 +384,14 @@ def f_disabled_team_role_4(conn):
 def f_formation_7(conn):
     return f_formation(conn,
                        organization_id=f_organization_1(conn),
+                       environment_id=f_environment_1(conn),
                        name="formation_seven")
 
 
 def f_device_7(conn):
     return f_device(conn,
                     organization_id=f_organization_1(conn),
+                    environment_id=f_environment_1(conn),
                     name="device_seven",
                     role_id=f_role_3(conn),
                     formation_id=f_formation_7(conn))
@@ -391,6 +400,7 @@ def f_device_7(conn):
 def f_device_8(conn):
     return f_device(conn,
                     organization_id=f_organization_1(conn),
+                    environment_id=f_environment_1(conn),
                     name="device_eight",
                     role_id=f_role_4(conn),
                     formation_id=f_formation_7(conn))
@@ -399,6 +409,7 @@ def f_device_8(conn):
 def f_device_1(conn):
     return f_device(conn,
                     organization_id=f_organization_1(conn),
+                    environment_id=f_environment_1(conn),
                     name="device_one",
                     role_id=f_role_1(conn),
                     formation_id=f_formation_1(conn))
@@ -470,18 +481,21 @@ def f_device_2_int_addr(conn):
 def f_formation_2(conn):
     return f_formation(conn,
                        organization_id=f_organization_1(conn),
+                       environment_id=f_environment_1(conn),
                        name="formation_two")
 
 
 def f_formation_3(conn):
     return f_formation(conn,
                        organization_id=f_organization_1(conn),
+                       environment_id=f_environment_1(conn),
                        name="formation_three")
 
 
 def f_formation_6(conn):
     return f_formation(conn,
                        organization_id=f_organization_1(conn),
+                       environment_id=f_environment_1(conn),
                        name="formation_six")
 
 
@@ -544,6 +558,7 @@ def f_role_2(conn):
 def f_device_2(conn):
     return f_device(conn,
                     organization_id=f_organization_1(conn),
+                    environment_id=f_environment_1(conn),
                     name="device_two",
                     role_id=f_role_2(conn),
                     formation_id=f_formation_2(conn))
@@ -552,6 +567,7 @@ def f_device_2(conn):
 def f_device_5(conn):
     return f_device(conn,
                     organization_id=f_organization_1(conn),
+                    environment_id=f_environment_1(conn),
                     name="device_five",
                     role_id=f_role_2(conn),
                     formation_id=f_formation_3(conn))
@@ -560,6 +576,7 @@ def f_device_5(conn):
 def f_device_10(conn):
     return f_device(conn,
                     organization_id=f_organization_1(conn),
+                    environment_id=f_environment_1(conn),
                     name="device_ten",
                     role_id=f_role_2(conn),
                     formation_id=f_formation_3(conn))
@@ -577,6 +594,7 @@ def f_device_5_ex_fqdn(conn):
 def f_device_6(conn):
     return f_device(conn,
                     organization_id=f_organization_1(conn),
+                    environment_id=f_environment_1(conn),
                     name="device_six",
                     role_id=f_role_2(conn),
                     formation_id=f_formation_6(conn))
@@ -603,6 +621,7 @@ def f_device_2_ex_fqdn(conn):
 def f_device_3(conn):
     return f_device(conn,
                     organization_id=f_organization_1(conn),
+                    environment_id=f_environment_1(conn),
                     name="device_three",
                     role_id=f_role_1(conn),
                     formation_id=f_formation_2(conn))
@@ -611,6 +630,7 @@ def f_device_3(conn):
 def f_device_building(conn):
     return f_device(conn,
                     organization_id=f_organization_1(conn),
+                    environment_id=f_environment_1(conn),
                     name="device_building",
                     role_id=f_role_1(conn),
                     formation_id=f_formation_2(conn),
@@ -620,6 +640,7 @@ def f_device_building(conn):
 def f_device_cant_sync(conn):
     return f_device(conn,
                     organization_id=f_organization_1(conn),
+                    environment_id=f_environment_1(conn),
                     name="device_building",
                     role_id=f_role_1(conn),
                     formation_id=f_formation_2(conn),
@@ -629,6 +650,7 @@ def f_device_cant_sync(conn):
 def f_device_non_instance(conn):
     return f_device(conn,
                     organization_id=f_organization_1(conn),
+                    environment_id=f_environment_1(conn),
                     name="device_building",
                     role_id=f_role_1(conn),
                     formation_id=f_formation_2(conn),
@@ -655,6 +677,7 @@ def f_device_3_ex_fqdn(conn):
 def f_device_4(conn):
     return f_device(conn,
                     organization_id=f_organization_1(conn),
+                    environment_id=f_environment_1(conn),
                     name="device_four",
                     role_id=f_role_1(conn),
                     formation_id=f_formation_1(conn))
@@ -950,6 +973,7 @@ def f_membership(conn, organization_id, user_id, team_id):
 def f_device(conn,
              organization_id,
              name,
+             environment_id,
              role_id,
              formation_id,
              device_type_id=None,
@@ -958,11 +982,11 @@ def f_device(conn,
              can_sync_to_ldap=1):
     sql = """
           INSERT INTO device
-            (organization_id, name, role_id,
+            (organization_id, name, environment_id, role_id,
              formation_id, device_type_id, implementation_id,
              status, can_sync_to_ldap)
               VALUES
-            (%(organization_id)s, %(name)s, %(role_id)s,
+            (%(organization_id)s, %(name)s, %(environment_id)s, %(role_id)s,
              %(formation_id)s, %(device_type_id)s, %(implementation_id)s,
              %(status)s, %(can_sync_to_ldap)s)
           """
@@ -972,6 +996,7 @@ def f_device(conn,
     return _insert_and_get_id(conn, sql,
                               dict(organization_id=organization_id,
                                    name=name,
+                                   environment_id=environment_id,
                                    role_id=role_id,
                                    formation_id=formation_id,
                                    device_type_id=device_type_id,
@@ -992,17 +1017,30 @@ def f_role(conn, organization_id, name):
                               dict(organization_id=organization_id,
                                    name=name))
 
+@fixture
+def f_environment(conn, organization_id, name, dictionary_id=1):
+    sql = """
+        INSERT INTO environment
+        (organization_id, name, dictionary_id)
+         VALUES
+        (%(organization_id)s, %(name)s, %(dictionary_id)s)
+        """
+    return _insert_and_get_id(conn, sql,
+                              dict(organization_id=organization_id,
+                                   name=name,
+                                   dictionary_id=dictionary_id))
 
 @fixture
-def f_formation(conn, organization_id, name):
+def f_formation(conn, organization_id, environment_id, name):
     sql = """
           INSERT INTO formation
-            (organization_id, name)
+            (organization_id, environment_id, name)
               VALUES
-            (%(organization_id)s, %(name)s)
+            (%(organization_id)s, %(environment_id)s, %(name)s)
           """
     return _insert_and_get_id(conn, sql,
                               dict(organization_id=organization_id,
+                                   environment_id=environment_id,
                                    name=name))
 
 

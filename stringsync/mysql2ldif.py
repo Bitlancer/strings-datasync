@@ -233,6 +233,7 @@ def dump_devices(organization_id, db, ldif_writer):
          attrs=dict(objectClass=['device', 'puppetClient'],
                     description=[device['role']],
                     puppetClass=[device['role']],
+                    environment=[device['environment']],
                     cn=[fqdn]))
 
 
@@ -1411,13 +1412,16 @@ def _select_posix_uid_num(db, user_id):
 
 def _select_devices(organization_id, db):
    """
-   Return a dict of role, external_fqdn for each device in the
+   Return a dict of env, role, external_fqdn for each device in the
    indicated organization.
    """
    select = """
-            SELECT r.name,
+            SELECT e.name,
+                   r.name,
                    a.val
-               FROM device d INNER JOIN role r
+               FROM device d INNER JOIN environment e
+                      ON d.environment_id = e.id
+                    INNER JOIN role r
                       ON d.role_id = r.id
                     INNER JOIN device_attribute a
                       ON d.id = a.device_id
@@ -1431,8 +1435,9 @@ def _select_devices(organization_id, db):
                       AND
                     dt.name = 'instance'
             """
-   return [dict(role=r[0],
-                external_fqdn=r[1])
+   return [dict(environment=r[0],
+                role=r[1],
+                external_fqdn=r[2])
            for r
            in select_rows(db, select, dict(organization_id=organization_id))]
 

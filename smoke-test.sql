@@ -1,8 +1,8 @@
--- MySQL dump 10.13  Distrib 5.6.14, for Linux (x86_64)
+-- MySQL dump 10.15  Distrib 10.0.10-MariaDB, for Linux (x86_64)
 --
--- Host: localhost    Database: strings
+-- Host: localhost    Database: strings_test
 -- ------------------------------------------------------
--- Server version	5.6.14
+-- Server version	10.0.10-MariaDB
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
@@ -26,8 +26,8 @@ CREATE TABLE `application` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT 'The id of the application',
   `organization_id` bigint(20) unsigned NOT NULL COMMENT 'The id of the organization that owns this record',
   `name` varchar(64) NOT NULL COMMENT 'The name of the application',
-  `updated` datetime  COMMENT 'The date and time of the last update to this record',
-  `created` datetime  COMMENT 'The date and time this record was created',
+  `updated` datetime DEFAULT NULL COMMENT 'The date and time of the last update to this record',
+  `created` datetime DEFAULT NULL COMMENT 'The date and time this record was created',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -54,8 +54,8 @@ CREATE TABLE `application_formation` (
   `organization_id` bigint(20) unsigned NOT NULL COMMENT 'The id of the organization that owns this record',
   `application_id` bigint(20) unsigned NOT NULL COMMENT 'The id of the application',
   `formation_id` bigint(20) unsigned NOT NULL COMMENT 'The id of the formation',
-  `updated` datetime  COMMENT 'The date and time of the last update to this record',
-  `created` datetime  COMMENT 'The date and time this record was created',
+  `updated` datetime DEFAULT NULL COMMENT 'The date and time of the last update to this record',
+  `created` datetime DEFAULT NULL COMMENT 'The date and time this record was created',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=26 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -86,8 +86,8 @@ CREATE TABLE `audit` (
   `entity_id` bigint(20) unsigned NOT NULL COMMENT 'The id of the record that was modified',
   `json_object` text NOT NULL COMMENT 'Json representation of the object that was modified',
   `description` text COMMENT 'A more user friendly description of the modification',
-  `updated` datetime  COMMENT 'The date and time of the last update to this record',
-  `created` datetime  COMMENT 'The date and time this record was created',
+  `updated` datetime DEFAULT NULL COMMENT 'The date and time of the last update to this record',
+  `created` datetime DEFAULT NULL COMMENT 'The date and time this record was created',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=4230 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -116,8 +116,8 @@ CREATE TABLE `audit_delta` (
   `property_name` varchar(255) NOT NULL COMMENT 'The property that was modified',
   `old_value` text COMMENT 'The original value of the property',
   `new_value` text COMMENT 'The new value of the property',
-  `updated` datetime  COMMENT 'The date and time of the last update to this record',
-  `created` datetime  COMMENT 'The date and time this record was created',
+  `updated` datetime DEFAULT NULL COMMENT 'The date and time of the last update to this record',
+  `created` datetime DEFAULT NULL COMMENT 'The date and time this record was created',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=89 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -145,8 +145,8 @@ CREATE TABLE `blueprint` (
   `name` varchar(64) NOT NULL COMMENT 'The name of the blueprint',
   `short_description` varchar(255) DEFAULT NULL COMMENT 'The short description of the blueprint',
   `description` text COMMENT 'The full description of the blueprint',
-  `updated` datetime  COMMENT 'The date and time of the last update to this record',
-  `created` datetime  COMMENT 'The date and time this record was created',
+  `updated` datetime DEFAULT NULL COMMENT 'The date and time of the last update to this record',
+  `created` datetime DEFAULT NULL COMMENT 'The date and time this record was created',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=15 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -178,8 +178,8 @@ CREATE TABLE `blueprint_part` (
   `description` varchar(255) DEFAULT NULL COMMENT 'The description of the blueprint part',
   `minimum` tinyint(3) unsigned DEFAULT '1' COMMENT 'The minimum number of devices that will be spun up',
   `maximum` tinyint(3) unsigned DEFAULT '1' COMMENT 'The maximum number of devices that will be spun up',
-  `updated` datetime  COMMENT 'The date and time of the last update to this record',
-  `created` datetime  COMMENT 'The date and time this record was created',
+  `updated` datetime DEFAULT NULL COMMENT 'The date and time of the last update to this record',
+  `created` datetime DEFAULT NULL COMMENT 'The date and time this record was created',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=19 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -206,8 +206,8 @@ CREATE TABLE `config` (
   `organization_id` bigint(20) unsigned DEFAULT NULL COMMENT 'If applicable, the id of the organization that owns this record',
   `var` varchar(128) NOT NULL COMMENT 'The config variable',
   `val` longtext NOT NULL COMMENT 'The variable value',
-  `updated` datetime  COMMENT 'The date and time of the last update to this record',
-  `created` datetime  COMMENT 'The date and time this record was created',
+  `updated` datetime DEFAULT NULL COMMENT 'The date and time of the last update to this record',
+  `created` datetime DEFAULT NULL COMMENT 'The date and time this record was created',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=35 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -237,11 +237,12 @@ CREATE TABLE `device` (
   `formation_id` bigint(20) unsigned NOT NULL COMMENT 'The id of the formation this device belongs to',
   `blueprint_part_id` bigint(20) unsigned NOT NULL COMMENT 'The id of the blueprint part this record belongs to',
   `role_id` bigint(20) unsigned NOT NULL COMMENT 'The id of the role this device belongs to',
+  `environment_id` bigint(20) unsigned NOT NULL COMMENT 'The id of the environment this device belongs to',
   `name` varchar(128) NOT NULL COMMENT 'The name of the device',
   `status` enum('building','resizing','active','deleting','error') DEFAULT 'building' COMMENT 'The status of this device',
   `can_sync_to_ldap` tinyint(1) DEFAULT '0' COMMENT 'Whether this device should be synced to ldap',
-  `updated` datetime  COMMENT 'The date and time of the last update to this record',
-  `created` datetime  COMMENT 'The date and time this record was created',
+  `updated` datetime DEFAULT NULL COMMENT 'The date and time of the last update to this record',
+  `created` datetime DEFAULT NULL COMMENT 'The date and time this record was created',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=248 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -252,7 +253,7 @@ CREATE TABLE `device` (
 
 LOCK TABLES `device` WRITE;
 /*!40000 ALTER TABLE `device` DISABLE KEYS */;
-INSERT INTO `device` VALUES (236,1,1,1,85,7,5,'jefferson-city','active',1,'2013-10-09 15:23:26','2013-10-08 21:37:48'),(237,1,1,1,85,7,5,'albany','active',1,'2013-10-09 15:23:26','2013-10-08 21:37:48'),(238,1,1,1,86,8,6,'boston','active',1,'2013-10-09 15:23:26','2013-10-08 21:39:10'),(239,1,1,1,86,8,6,'harrisburg','active',1,'2013-10-09 15:23:26','2013-10-08 21:39:10'),(240,1,1,1,87,9,7,'saint-paul','active',1,'2013-10-09 15:23:26','2013-10-08 21:40:28'),(241,1,1,1,87,9,7,'lansing','active',1,'2013-10-09 15:23:26','2013-10-08 21:40:28'),(242,1,2,1,87,10,8,'jackson','building',0,'2013-10-09 13:31:21','2013-10-08 21:40:28'),(243,2,1,2,88,12,10,'new york','active',1,'2013-10-09 15:23:26','2013-10-08 21:53:43'),(244,2,1,2,88,12,10,'massachusetts','active',1,'2013-10-09 15:23:26','2013-10-08 21:53:43'),(245,2,1,2,88,12,10,'alaska','building',0,'2013-10-09 02:02:35','2013-10-09 02:02:35'),(246,1,1,1,89,7,5,'alaska','building',0,'2013-10-09 02:12:43','2013-10-09 02:12:43'),(247,1,1,1,89,7,5,'washington','building',0,'2013-10-09 02:12:43','2013-10-09 02:12:43');
+INSERT INTO `device` VALUES (236,1,1,1,85,7,5,1,'jefferson-city','active',1,'2013-10-09 15:23:26','2013-10-08 21:37:48'),(237,1,1,1,85,7,5,1,'albany','active',1,'2013-10-09 15:23:26','2013-10-08 21:37:48'),(238,1,1,1,86,8,6,1,'boston','active',1,'2013-10-09 15:23:26','2013-10-08 21:39:10'),(239,1,1,1,86,8,6,1,'harrisburg','active',1,'2013-10-09 15:23:26','2013-10-08 21:39:10'),(240,1,1,1,87,9,7,2,'saint-paul','active',1,'2013-10-09 15:23:26','2013-10-08 21:40:28'),(241,1,1,1,87,9,7,2,'lansing','active',1,'2013-10-09 15:23:26','2013-10-08 21:40:28'),(242,1,2,1,87,10,8,2,'jackson','building',0,'2013-10-09 13:31:21','2013-10-08 21:40:28'),(243,2,1,2,88,12,10,3,'new york','active',1,'2013-10-09 15:23:26','2013-10-08 21:53:43'),(244,2,1,2,88,12,10,3,'massachusetts','active',1,'2013-10-09 15:23:26','2013-10-08 21:53:43'),(245,2,1,2,88,12,10,3,'alaska','building',0,'2013-10-09 02:02:35','2013-10-09 02:02:35'),(246,1,1,1,89,7,5,1,'alaska','building',0,'2013-10-09 02:12:43','2013-10-09 02:12:43'),(247,1,1,1,89,7,5,1,'washington','building',0,'2013-10-09 02:12:43','2013-10-09 02:12:43');
 /*!40000 ALTER TABLE `device` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -269,8 +270,8 @@ CREATE TABLE `device_attribute` (
   `device_id` bigint(20) unsigned NOT NULL COMMENT 'The id of the device',
   `var` varchar(128) NOT NULL COMMENT 'The config variable',
   `val` longtext NOT NULL COMMENT 'The variable value',
-  `updated` datetime  COMMENT 'The date and time of the last update to this record',
-  `created` datetime  COMMENT 'The date and time this record was created',
+  `updated` datetime DEFAULT NULL COMMENT 'The date and time of the last update to this record',
+  `created` datetime DEFAULT NULL COMMENT 'The date and time this record was created',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1300 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -298,8 +299,8 @@ CREATE TABLE `device_dns` (
   `application_formation_id` bigint(20) unsigned NOT NULL COMMENT 'The id of the application to formation mapping this record belongs to',
   `device_id` bigint(20) unsigned NOT NULL COMMENT 'The id of the device this record belongs to',
   `name` varchar(255) NOT NULL COMMENT 'The name of the dns record',
-  `updated` datetime  COMMENT 'The date and time of the last update to this record',
-  `created` datetime  COMMENT 'The date and time this record was created',
+  `updated` datetime DEFAULT NULL COMMENT 'The date and time of the last update to this record',
+  `created` datetime DEFAULT NULL COMMENT 'The date and time this record was created',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -324,8 +325,8 @@ DROP TABLE IF EXISTS `device_type`;
 CREATE TABLE `device_type` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT 'The id of the device type record',
   `name` varchar(128) NOT NULL COMMENT 'The name of the device type',
-  `updated` datetime  COMMENT 'The date and time of the last update to this record',
-  `created` datetime  COMMENT 'The date and time this record was created',
+  `updated` datetime DEFAULT NULL COMMENT 'The date and time of the last update to this record',
+  `created` datetime DEFAULT NULL COMMENT 'The date and time this record was created',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -351,8 +352,8 @@ CREATE TABLE `dictionary` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT 'The id of the record',
   `organization_id` bigint(20) unsigned NOT NULL COMMENT 'The id of the organization that owns this record',
   `name` varchar(64) NOT NULL COMMENT 'The name of the dictionary',
-  `updated` datetime  COMMENT 'The date and time of the last update to this record',
-  `created` datetime  COMMENT 'The date and time this record was created',
+  `updated` datetime DEFAULT NULL COMMENT 'The date and time of the last update to this record',
+  `created` datetime DEFAULT NULL COMMENT 'The date and time this record was created',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=16 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -380,8 +381,8 @@ CREATE TABLE `dictionary_word` (
   `dictionary_id` bigint(20) unsigned NOT NULL COMMENT 'The id of the dictionary',
   `word` varchar(64) NOT NULL COMMENT 'The word',
   `status` tinyint(3) unsigned DEFAULT '0' COMMENT 'Status of the word',
-  `updated` datetime  COMMENT 'The date and time of the last update to this record',
-  `created` datetime  COMMENT 'The date and time this record was created',
+  `updated` datetime DEFAULT NULL COMMENT 'The date and time of the last update to this record',
+  `created` datetime DEFAULT NULL COMMENT 'The date and time this record was created',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=193 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -397,6 +398,34 @@ INSERT INTO `dictionary_word` VALUES (1,1,1,'Montgomery',0,'2013-10-08 18:22:50'
 UNLOCK TABLES;
 
 --
+-- Table structure for table `environment`
+--
+
+DROP TABLE IF EXISTS `environment`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `environment` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT 'The id of the environment',
+  `organization_id` bigint(20) unsigned NOT NULL COMMENT 'The id of the organization that owns this record',
+  `dictionary_id` bigint(20) unsigned NOT NULL COMMENT 'The id of this environments dictionary',
+  `name` varchar(128) NOT NULL COMMENT 'The name of the environment',
+  `updated` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'The date and time of the last update to this record',
+  `created` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'The date and time this record was created',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=latin1;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `environment`
+--
+
+LOCK TABLES `environment` WRITE;
+/*!40000 ALTER TABLE `environment` DISABLE KEYS */;
+INSERT INTO `environment` VALUES (1,1,1,'production','2013-10-09 01:48:27','2013-10-08 21:37:48'),(2,1,2,'development','2013-10-09 01:48:27','2013-10-08 21:37:48'),(3,2,14,'production','2014-05-02 14:17:21','2014-05-02 14:17:21');
+/*!40000 ALTER TABLE `environment` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `formation`
 --
 
@@ -408,11 +437,11 @@ CREATE TABLE `formation` (
   `organization_id` bigint(20) unsigned NOT NULL COMMENT 'The id of the organization that owns this record',
   `implementation_id` bigint(20) unsigned NOT NULL COMMENT 'The id of the implementation this formation belongs to',
   `blueprint_id` bigint(20) unsigned NOT NULL COMMENT 'The id of the blueprint this record belongs to',
-  `dictionary_id` bigint(20) unsigned NOT NULL COMMENT 'The id of the dictionary this record belongs to',
+  `environment_id` bigint(20) unsigned NOT NULL COMMENT 'The id of the environment this formation belongs to',
   `name` varchar(128) NOT NULL COMMENT 'The name of the formation',
   `status` enum('building','resizing','active','deleting','error') DEFAULT 'building' COMMENT 'The status of this formation',
-  `updated` datetime  COMMENT 'The date and time of the last update to this record',
-  `created` datetime  COMMENT 'The date and time this record was created',
+  `updated` datetime DEFAULT NULL COMMENT 'The date and time of the last update to this record',
+  `created` datetime DEFAULT NULL COMMENT 'The date and time this record was created',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=90 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -423,7 +452,7 @@ CREATE TABLE `formation` (
 
 LOCK TABLES `formation` WRITE;
 /*!40000 ALTER TABLE `formation` DISABLE KEYS */;
-INSERT INTO `formation` VALUES (85,1,1,6,1,'dev','active','2013-10-09 01:48:27','2013-10-08 21:37:48'),(86,1,1,7,1,'mysql cluster','active','2013-10-09 01:47:01','2013-10-08 21:39:10'),(87,1,1,8,1,'php-apache-cluster','building','2013-10-09 13:30:57','2013-10-08 21:40:28'),(88,2,2,10,14,'mysql cluster','active','2013-10-09 01:58:36','2013-10-08 21:53:43'),(89,1,1,6,2,'test','building','2013-10-09 02:12:43','2013-10-09 02:12:43');
+INSERT INTO `formation` VALUES (85,1,1,6,1,'dev','active','2013-10-09 01:48:27','2013-10-08 21:37:48'),(86,1,1,7,1,'mysql cluster','active','2013-10-09 01:47:01','2013-10-08 21:39:10'),(87,1,1,8,2,'php-apache-cluster','building','2013-10-09 13:30:57','2013-10-08 21:40:28'),(88,2,2,10,3,'mysql cluster','active','2013-10-09 01:58:36','2013-10-08 21:53:43'),(89,1,1,6,1,'test','building','2013-10-09 02:12:43','2013-10-09 02:12:43');
 /*!40000 ALTER TABLE `formation` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -440,8 +469,8 @@ CREATE TABLE `hiera` (
   `hiera_key` varchar(128) NOT NULL COMMENT 'The search key for hiera',
   `var` varchar(128) NOT NULL COMMENT 'The configuration variable',
   `val` longtext NOT NULL COMMENT 'The variable value',
-  `updated` datetime  COMMENT 'The date and time of the last update to this record',
-  `created` datetime  COMMENT 'The date and time this record was created',
+  `updated` datetime DEFAULT NULL COMMENT 'The date and time of the last update to this record',
+  `created` datetime DEFAULT NULL COMMENT 'The date and time this record was created',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=136 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -468,8 +497,8 @@ CREATE TABLE `implementation` (
   `organization_id` bigint(20) unsigned NOT NULL COMMENT 'The id of the organization that owns this record',
   `provider_id` bigint(20) unsigned NOT NULL COMMENT 'The provider of this implementation',
   `name` varchar(64) NOT NULL COMMENT 'The name of this implementation',
-  `updated` datetime  COMMENT 'The date and time of the last update to this record',
-  `created` datetime  COMMENT 'The date and time this record was created',
+  `updated` datetime DEFAULT NULL COMMENT 'The date and time of the last update to this record',
+  `created` datetime DEFAULT NULL COMMENT 'The date and time this record was created',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -497,8 +526,8 @@ CREATE TABLE `implementation_attribute` (
   `implementation_id` bigint(20) unsigned NOT NULL COMMENT 'The id of the implementation',
   `var` varchar(128) NOT NULL COMMENT 'The config variable',
   `val` longtext NOT NULL COMMENT 'The variable value',
-  `updated` datetime  COMMENT 'The date and time of the last update to this record',
-  `created` datetime  COMMENT 'The date and time this record was created',
+  `updated` datetime DEFAULT NULL COMMENT 'The date and time of the last update to this record',
+  `created` datetime DEFAULT NULL COMMENT 'The date and time this record was created',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=31 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -527,8 +556,8 @@ CREATE TABLE `jump_server` (
   `device_id` bigint(20) unsigned NOT NULL COMMENT 'The id of the device this record belongs to',
   `region` varchar(64) NOT NULL COMMENT 'The region this server lives in',
   `private_key` text NOT NULL COMMENT 'The private key that grants the remoteexec user access to this server',
-  `updated` datetime  COMMENT 'The date and time of the last update to this record',
-  `created` datetime  COMMENT 'The date and time this record was created',
+  `updated` datetime DEFAULT NULL COMMENT 'The date and time of the last update to this record',
+  `created` datetime DEFAULT NULL COMMENT 'The date and time this record was created',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -557,8 +586,8 @@ CREATE TABLE `module` (
   `name` varchar(255) NOT NULL COMMENT 'The name of the module',
   `reference` varchar(255) DEFAULT NULL COMMENT 'Optional reference to version, revision, branch or tag of module',
   `path` varchar(255) DEFAULT NULL COMMENT 'Optional path to module within the git repository',
-  `updated` datetime  COMMENT 'The date and time of the last update to this record',
-  `created` datetime  COMMENT 'The date and time this record was created',
+  `updated` datetime DEFAULT NULL COMMENT 'The date and time of the last update to this record',
+  `created` datetime DEFAULT NULL COMMENT 'The date and time this record was created',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=23 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -586,8 +615,8 @@ CREATE TABLE `module_source` (
   `name` varchar(128) NOT NULL COMMENT 'The name of the module source',
   `type` enum('forge','git') NOT NULL DEFAULT 'git' COMMENT 'The module source type',
   `url` varchar(255) NOT NULL COMMENT 'The url of the module source',
-  `updated` datetime  COMMENT 'The date and time of the last update to this record',
-  `created` datetime  COMMENT 'The date and time this record was created',
+  `updated` datetime DEFAULT NULL COMMENT 'The date and time of the last update to this record',
+  `created` datetime DEFAULT NULL COMMENT 'The date and time this record was created',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=17 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -620,8 +649,8 @@ CREATE TABLE `module_variable` (
   `validation_pattern` varchar(255) DEFAULT NULL COMMENT 'Optional regular expression to validate the variable value',
   `is_editable` tinyint(1) unsigned NOT NULL DEFAULT '1' COMMENT 'Whether or not the default value is editable',
   `is_required` tinyint(1) unsigned NOT NULL DEFAULT '1' COMMENT 'Whether or not this variable must be defined',
-  `updated` datetime  COMMENT 'The date and time of the last update to this record',
-  `created` datetime  COMMENT 'The date and time this record was created',
+  `updated` datetime DEFAULT NULL COMMENT 'The date and time of the last update to this record',
+  `created` datetime DEFAULT NULL COMMENT 'The date and time this record was created',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=54 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -648,8 +677,8 @@ CREATE TABLE `organization` (
   `name` varchar(64) NOT NULL COMMENT 'The name of the organization',
   `short_name` varchar(64) NOT NULL COMMENT 'A short name for the organization',
   `is_disabled` tinyint(1) unsigned NOT NULL DEFAULT '0' COMMENT 'Whether or not this organization is disabled',
-  `updated` datetime  COMMENT 'The date and time of the last update to this record',
-  `created` datetime  COMMENT 'The date and time this record was created',
+  `updated` datetime DEFAULT NULL COMMENT 'The date and time of the last update to this record',
+  `created` datetime DEFAULT NULL COMMENT 'The date and time this record was created',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -675,8 +704,8 @@ CREATE TABLE `profile` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT 'The id of the profile',
   `organization_id` bigint(20) unsigned NOT NULL COMMENT 'The id of the organization that owns this record',
   `name` varchar(128) NOT NULL COMMENT 'The name of the profile',
-  `updated` datetime  COMMENT 'The date and time of the last update to this record',
-  `created` datetime  COMMENT 'The date and time this record was created',
+  `updated` datetime DEFAULT NULL COMMENT 'The date and time of the last update to this record',
+  `created` datetime DEFAULT NULL COMMENT 'The date and time this record was created',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -703,8 +732,8 @@ CREATE TABLE `profile_module` (
   `organization_id` bigint(20) unsigned NOT NULL COMMENT 'The id of the organization that owns this record',
   `profile_id` bigint(20) unsigned NOT NULL COMMENT 'The id of the profile',
   `module_id` bigint(20) unsigned NOT NULL COMMENT 'The id of the module',
-  `updated` datetime  COMMENT 'The date and time of the last update to this record',
-  `created` datetime  COMMENT 'The date and time this record was created',
+  `updated` datetime DEFAULT NULL COMMENT 'The date and time of the last update to this record',
+  `created` datetime DEFAULT NULL COMMENT 'The date and time this record was created',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=15 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -730,8 +759,8 @@ CREATE TABLE `provider` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT 'The id of the provider',
   `organization_id` bigint(20) unsigned DEFAULT NULL COMMENT 'If applicable, the id of the organization that owns this record',
   `name` varchar(64) NOT NULL COMMENT 'The name of the provider',
-  `updated` datetime  COMMENT 'The date and time of the last update to this record',
-  `created` datetime  COMMENT 'The date and time this record was created',
+  `updated` datetime DEFAULT NULL COMMENT 'The date and time of the last update to this record',
+  `created` datetime DEFAULT NULL COMMENT 'The date and time this record was created',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -759,8 +788,8 @@ CREATE TABLE `provider_attribute` (
   `provider_id` bigint(20) unsigned NOT NULL COMMENT 'The id of the provider',
   `var` varchar(128) NOT NULL COMMENT 'The config variable',
   `val` longtext NOT NULL COMMENT 'The variable value',
-  `updated` datetime  COMMENT 'The date and time of the last update to this record',
-  `created` datetime  COMMENT 'The date and time this record was created',
+  `updated` datetime DEFAULT NULL COMMENT 'The date and time of the last update to this record',
+  `created` datetime DEFAULT NULL COMMENT 'The date and time this record was created',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -821,7 +850,7 @@ CREATE TABLE `queued_job_log` (
   `organization_id` bigint(20) unsigned DEFAULT NULL COMMENT 'If applicable, the id of the organization that owns this record',
   `job_id` bigint(20) unsigned NOT NULL COMMENT 'The id of job referenced',
   `msg` text NOT NULL COMMENT 'The result returned from the executed job',
-  `created_at` timestamp ,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=169 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -847,8 +876,8 @@ CREATE TABLE `role` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT 'The id of the role',
   `organization_id` bigint(20) unsigned NOT NULL COMMENT 'The id of the organization that owns this record',
   `name` varchar(128) NOT NULL COMMENT 'The name of the role',
-  `updated` datetime  COMMENT 'The date and time of the last update to this record',
-  `created` datetime  COMMENT 'The date and time this record was created',
+  `updated` datetime DEFAULT NULL COMMENT 'The date and time of the last update to this record',
+  `created` datetime DEFAULT NULL COMMENT 'The date and time this record was created',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=17 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -875,8 +904,8 @@ CREATE TABLE `role_profile` (
   `organization_id` bigint(20) unsigned NOT NULL COMMENT 'The id of the organization that owns this record',
   `role_id` bigint(20) unsigned NOT NULL COMMENT 'The id of the role',
   `profile_id` bigint(20) unsigned NOT NULL COMMENT 'The id of the profile',
-  `updated` datetime  COMMENT 'The date and time of the last update to this record',
-  `created` datetime  COMMENT 'The date and time this record was created',
+  `updated` datetime DEFAULT NULL COMMENT 'The date and time of the last update to this record',
+  `created` datetime DEFAULT NULL COMMENT 'The date and time this record was created',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -908,8 +937,8 @@ CREATE TABLE `script` (
   `url` varchar(255) NOT NULL COMMENT 'The url of the script source',
   `path` varchar(255) DEFAULT NULL COMMENT 'Optional path to module within the git repository',
   `parameters` text COMMENT 'Optional string of parameters that will be passed to the script during execution',
-  `updated` datetime  COMMENT 'The date and time of the last update to this record',
-  `created` datetime  COMMENT 'The date and time this record was created',
+  `updated` datetime DEFAULT NULL COMMENT 'The date and time of the last update to this record',
+  `created` datetime DEFAULT NULL COMMENT 'The date and time this record was created',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -934,8 +963,8 @@ CREATE TABLE `service` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT 'The id of the service',
   `organization_id` bigint(20) unsigned DEFAULT NULL COMMENT 'If applicable, the id of the organization that owns this record',
   `name` varchar(64) NOT NULL COMMENT 'The name of the service',
-  `updated` datetime  COMMENT 'The date and time of the last update to this record',
-  `created` datetime  COMMENT 'The date and time this record was created',
+  `updated` datetime DEFAULT NULL COMMENT 'The date and time of the last update to this record',
+  `created` datetime DEFAULT NULL COMMENT 'The date and time this record was created',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -962,8 +991,8 @@ CREATE TABLE `service_provider` (
   `organization_id` bigint(20) unsigned DEFAULT NULL COMMENT 'If applicable, the id of the organization that owns this record',
   `service_id` bigint(20) unsigned NOT NULL COMMENT 'The id of the service',
   `provider_id` bigint(20) unsigned NOT NULL COMMENT 'The id of the provider',
-  `updated` datetime  COMMENT 'The date and time of the last update to this record',
-  `created` datetime  COMMENT 'The date and time this record was created',
+  `updated` datetime DEFAULT NULL COMMENT 'The date and time of the last update to this record',
+  `created` datetime DEFAULT NULL COMMENT 'The date and time this record was created',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -990,8 +1019,8 @@ CREATE TABLE `sudo` (
   `organization_id` bigint(20) unsigned NOT NULL COMMENT 'The id of the organization that owns this record',
   `name` varchar(128) NOT NULL COMMENT 'The name of the sudo role',
   `is_hidden` tinyint(1) unsigned NOT NULL DEFAULT '0' COMMENT 'Whether or not the sudo role is hidden from the end user',
-  `updated` datetime  COMMENT 'The date and time of the last update to this record',
-  `created` datetime  COMMENT 'The date and time this record was created',
+  `updated` datetime DEFAULT NULL COMMENT 'The date and time of the last update to this record',
+  `created` datetime DEFAULT NULL COMMENT 'The date and time this record was created',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -1019,8 +1048,8 @@ CREATE TABLE `sudo_attribute` (
   `sudo_id` bigint(20) unsigned NOT NULL COMMENT 'The id of the sudo role',
   `name` enum('sudoCommand','sudoRunAs','sudoOption') NOT NULL COMMENT 'The name of the sudo attribute',
   `value` varchar(128) NOT NULL COMMENT 'The value of the sudo attribute',
-  `updated` datetime  COMMENT 'The date and time of the last update to this record',
-  `created` datetime  COMMENT 'The date and time this record was created',
+  `updated` datetime DEFAULT NULL COMMENT 'The date and time of the last update to this record',
+  `created` datetime DEFAULT NULL COMMENT 'The date and time this record was created',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=39 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -1047,8 +1076,8 @@ CREATE TABLE `team` (
   `organization_id` bigint(20) unsigned NOT NULL COMMENT 'The id of the organization that owns this record',
   `name` varchar(64) NOT NULL COMMENT 'The name of the team',
   `is_disabled` tinyint(1) unsigned NOT NULL DEFAULT '0' COMMENT 'Whether or not the team is disabled',
-  `updated` datetime  COMMENT 'The date and time of the last update to this record',
-  `created` datetime  COMMENT 'The date and time this record was created',
+  `updated` datetime DEFAULT NULL COMMENT 'The date and time of the last update to this record',
+  `created` datetime DEFAULT NULL COMMENT 'The date and time this record was created',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=33 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -1075,8 +1104,8 @@ CREATE TABLE `team_application` (
   `organization_id` bigint(20) unsigned NOT NULL COMMENT 'The id of the organization that owns this record',
   `team_id` bigint(20) unsigned NOT NULL COMMENT 'The id of the team',
   `application_id` bigint(20) unsigned NOT NULL COMMENT 'The id of the application',
-  `updated` datetime  COMMENT 'The date and time of the last update to this record',
-  `created` datetime  COMMENT 'The date and time this record was created',
+  `updated` datetime DEFAULT NULL COMMENT 'The date and time of the last update to this record',
+  `created` datetime DEFAULT NULL COMMENT 'The date and time this record was created',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=55 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -1103,8 +1132,8 @@ CREATE TABLE `team_application_sudo` (
   `organization_id` bigint(20) unsigned NOT NULL COMMENT 'The id of the organization that owns this record',
   `team_application_id` bigint(20) unsigned NOT NULL COMMENT 'The id of the team to application mapping',
   `sudo_id` bigint(20) unsigned NOT NULL COMMENT 'The id of the sudo role',
-  `updated` datetime  COMMENT 'The date and time of the last update to this record',
-  `created` datetime  COMMENT 'The date and time this record was created',
+  `updated` datetime DEFAULT NULL COMMENT 'The date and time of the last update to this record',
+  `created` datetime DEFAULT NULL COMMENT 'The date and time this record was created',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=40 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -1131,8 +1160,8 @@ CREATE TABLE `team_device` (
   `organization_id` bigint(20) unsigned NOT NULL COMMENT 'The id of the organization that owns this record',
   `team_id` bigint(20) unsigned NOT NULL COMMENT 'The id of the team',
   `device_id` bigint(20) unsigned NOT NULL COMMENT 'The id of the device',
-  `updated` datetime  COMMENT 'The date and time of the last update to this record',
-  `created` datetime  COMMENT 'The date and time this record was created',
+  `updated` datetime DEFAULT NULL COMMENT 'The date and time of the last update to this record',
+  `created` datetime DEFAULT NULL COMMENT 'The date and time this record was created',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -1158,8 +1187,8 @@ CREATE TABLE `team_device_sudo` (
   `organization_id` bigint(20) unsigned NOT NULL COMMENT 'The id of the organization that owns this record',
   `team_device_id` bigint(20) unsigned NOT NULL COMMENT 'The id of the team to device mapping',
   `sudo_id` bigint(20) unsigned NOT NULL COMMENT 'The id of the sudo role',
-  `updated` datetime  COMMENT 'The date and time of the last update to this record',
-  `created` datetime  COMMENT 'The date and time this record was created',
+  `updated` datetime DEFAULT NULL COMMENT 'The date and time of the last update to this record',
+  `created` datetime DEFAULT NULL COMMENT 'The date and time this record was created',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -1185,8 +1214,8 @@ CREATE TABLE `team_formation` (
   `organization_id` bigint(20) unsigned NOT NULL COMMENT 'The id of the organization that owns this record',
   `team_id` bigint(20) unsigned NOT NULL COMMENT 'The id of the team',
   `formation_id` bigint(20) unsigned NOT NULL COMMENT 'The id of the formation',
-  `updated` datetime  COMMENT 'The date and time of the last update to this record',
-  `created` datetime  COMMENT 'The date and time this record was created',
+  `updated` datetime DEFAULT NULL COMMENT 'The date and time of the last update to this record',
+  `created` datetime DEFAULT NULL COMMENT 'The date and time this record was created',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -1213,8 +1242,8 @@ CREATE TABLE `team_formation_sudo` (
   `organization_id` bigint(20) unsigned NOT NULL COMMENT 'The id of the organization that owns this record',
   `team_formation_id` bigint(20) unsigned NOT NULL COMMENT 'The id of the team to formation mapping',
   `sudo_id` bigint(20) unsigned NOT NULL COMMENT 'The id of the sudo role',
-  `updated` datetime  COMMENT 'The date and time of the last update to this record',
-  `created` datetime  COMMENT 'The date and time this record was created',
+  `updated` datetime DEFAULT NULL COMMENT 'The date and time of the last update to this record',
+  `created` datetime DEFAULT NULL COMMENT 'The date and time this record was created',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -1241,8 +1270,8 @@ CREATE TABLE `team_role` (
   `organization_id` bigint(20) unsigned NOT NULL COMMENT 'The id of the organization that owns this record',
   `team_id` bigint(20) unsigned NOT NULL COMMENT 'The id of the team',
   `role_id` bigint(20) unsigned NOT NULL COMMENT 'The id of the role',
-  `updated` datetime  COMMENT 'The date and time of the last update to this record',
-  `created` datetime  COMMENT 'The date and time this record was created',
+  `updated` datetime DEFAULT NULL COMMENT 'The date and time of the last update to this record',
+  `created` datetime DEFAULT NULL COMMENT 'The date and time this record was created',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -1269,8 +1298,8 @@ CREATE TABLE `team_role_sudo` (
   `organization_id` bigint(20) unsigned NOT NULL COMMENT 'The id of the organization that owns this record',
   `team_role_id` bigint(20) unsigned NOT NULL COMMENT 'The id of the team to role mapping',
   `sudo_id` bigint(20) unsigned NOT NULL COMMENT 'The id of the sudo role',
-  `updated` datetime  COMMENT 'The date and time of the last update to this record',
-  `created` datetime  COMMENT 'The date and time this record was created',
+  `updated` datetime DEFAULT NULL COMMENT 'The date and time of the last update to this record',
+  `created` datetime DEFAULT NULL COMMENT 'The date and time this record was created',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -1303,8 +1332,8 @@ CREATE TABLE `user` (
   `is_admin` tinyint(1) unsigned NOT NULL DEFAULT '0' COMMENT 'Whether or not the user is an admin',
   `can_create_user` tinyint(1) unsigned NOT NULL DEFAULT '0' COMMENT 'Whether or not the user can create users',
   `is_disabled` tinyint(1) unsigned NOT NULL DEFAULT '0' COMMENT 'Whether or not the user is disabled',
-  `updated` datetime  COMMENT 'The date and time of the last update to this record',
-  `created` datetime  COMMENT 'The date and time this record was created',
+  `updated` datetime DEFAULT NULL COMMENT 'The date and time of the last update to this record',
+  `created` datetime DEFAULT NULL COMMENT 'The date and time this record was created',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=49 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -1332,8 +1361,8 @@ CREATE TABLE `user_attribute` (
   `user_id` bigint(20) unsigned NOT NULL COMMENT 'The id of the user',
   `var` varchar(128) NOT NULL COMMENT 'The config variable',
   `val` longtext NOT NULL COMMENT 'The variable value',
-  `updated` datetime  COMMENT 'The date and time of the last update to this record',
-  `created` datetime  COMMENT 'The date and time this record was created',
+  `updated` datetime DEFAULT NULL COMMENT 'The date and time of the last update to this record',
+  `created` datetime DEFAULT NULL COMMENT 'The date and time this record was created',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=51 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -1361,8 +1390,8 @@ CREATE TABLE `user_key` (
   `user_id` bigint(20) unsigned NOT NULL COMMENT 'The id of the user',
   `name` varchar(64) NOT NULL COMMENT 'The name of the key',
   `public_key` text NOT NULL COMMENT 'The public key',
-  `updated` datetime  COMMENT 'The date and time of the last update to this record',
-  `created` datetime  COMMENT 'The date and time this record was created',
+  `updated` datetime DEFAULT NULL COMMENT 'The date and time of the last update to this record',
+  `created` datetime DEFAULT NULL COMMENT 'The date and time this record was created',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -1389,8 +1418,8 @@ CREATE TABLE `user_team` (
   `organization_id` bigint(20) unsigned NOT NULL COMMENT 'The id of the organization that owns this record',
   `user_id` bigint(20) unsigned NOT NULL COMMENT 'The id of the user',
   `team_id` bigint(20) unsigned NOT NULL COMMENT 'The id of the team',
-  `updated` datetime  COMMENT 'The date and time of the last update to this record',
-  `created` datetime  COMMENT 'The date and time this record was created',
+  `updated` datetime DEFAULT NULL COMMENT 'The date and time of the last update to this record',
+  `created` datetime DEFAULT NULL COMMENT 'The date and time this record was created',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=54 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -1414,4 +1443,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2013-10-09 18:03:39
+-- Dump completed on 2014-05-02 14:18:35

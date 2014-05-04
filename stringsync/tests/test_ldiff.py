@@ -113,6 +113,7 @@ def test_ldap_applier_handles_add():
     ldap_server = mock.MagicMock()
     ldap_applier = ldiff.LdapApplier(ldap_server)
     ldap_applier.handle_add(add_dn_entry)
+    ldap_applier.commit()
     eq_([mock.call.add_s('hi', [('testing123', 'hello')])],
         ldap_server.mock_calls)
 
@@ -122,6 +123,7 @@ def test_ldap_applier_handles_delete():
     ldap_server = mock.MagicMock()
     ldap_applier = ldiff.LdapApplier(ldap_server)
     ldap_applier.handle_delete(delete_dn_entry)
+    ldap_applier.commit()
     eq_([mock.call.delete_s('hi')],
         ldap_server.mock_calls)
 
@@ -142,6 +144,7 @@ def test_ldap_applier_handles_change():
     ldap_server = mock.MagicMock()
     ldap_applier = ldiff.LdapApplier(ldap_server)
     ldap_applier.handle_change(dn_entry_one, dn_entry_two)
+    ldap_applier.commit()
     eq_([mock.call.modify_s('hi', [(0, 'hhh', 'ggg'),
                                    (1, 'testing123', None),
                                    (0, 'testing123', 'goodbye')])],

@@ -255,6 +255,7 @@ class TestMysql2Ldif(object):
 
     def test_dump_devices(self):
         org_1 = f.f_organization_1(self.conn)
+        env_1 = f.f_environment_1(self.conn)
         dev_1 = f.f_device_1(self.conn)
         dev_2 = f.f_device_2(self.conn)
         dev_3 = f.f_device_3(self.conn)
@@ -278,6 +279,7 @@ class TestMysql2Ldif(object):
            des,dc=org-one-infra,dc=net
           cn: device_one.data_center_one.org-one-infra.net
           description: role_one
+          environment: production
           objectClass: device
           objectClass: puppetClient
           puppetClass: role_one
@@ -286,6 +288,7 @@ class TestMysql2Ldif(object):
            nodes,dc=org-one-infra,dc=net
           cn: device_three.data_center_two.org-one-infra.net
           description: role_one
+          environment: production
           objectClass: device
           objectClass: puppetClient
           puppetClass: role_one
@@ -294,6 +297,7 @@ class TestMysql2Ldif(object):
            des,dc=org-one-infra,dc=net
           cn: device_two.data_center_two.org-one-infra.net
           description: role_two
+          environment: production
           objectClass: device
           objectClass: puppetClient
           puppetClass: role_two
@@ -1082,10 +1086,10 @@ class TestMysql2Ldif(object):
           objectClass: top
           ou: production
 
-          dn: cn=bob.dfw01.strings-example.net,ou=fqdn,ou=hiera,dc=org-one-infra,dc=
-           net
+          dn: cn=bob.dfw01.strings-example.net,ou=fqdn,ou=hiera,dc=org-one-infra,dc=ne
+           t
           cn: bob.dfw01.strings-example.net
-          description: {"mysql_server_id": "10"}
+          description: {"mysql_server_id": 10}
           objectClass: device
           objectClass: top
 
