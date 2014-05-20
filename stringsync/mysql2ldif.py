@@ -232,9 +232,10 @@ def dump_devices(organization_id, db, ldif_writer):
          dn="cn=%s,ou=%s" % (fqdn, _data_center(fqdn)),
          attrs=dict(objectClass=['device', 'puppetClient'],
                     description=[device['role']],
+                    cn=[fqdn],
                     puppetClass=[device['role']],
                     environment=[device['environment']],
-                    cn=[fqdn]))
+                    puppetVar=["role=%s" % device['role']]))
 
 
 def dump_posix_ou(ldif_writer):

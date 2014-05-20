@@ -283,6 +283,7 @@ class TestMysql2Ldif(object):
           objectClass: device
           objectClass: puppetClient
           puppetClass: role_one
+          puppetVar: role=role_one
 
           dn: cn=device_three.data_center_two.org-one-infra.net,ou=data_center_two,ou=
            nodes,dc=org-one-infra,dc=net
@@ -292,6 +293,7 @@ class TestMysql2Ldif(object):
           objectClass: device
           objectClass: puppetClient
           puppetClass: role_one
+          puppetVar: role=role_one
 
           dn: cn=device_two.data_center_two.org-one-infra.net,ou=data_center_two,ou=no
            des,dc=org-one-infra,dc=net
@@ -301,6 +303,7 @@ class TestMysql2Ldif(object):
           objectClass: device
           objectClass: puppetClient
           puppetClass: role_two
+          puppetVar: role=role_two
 
           """), ldif.ldif())
 
